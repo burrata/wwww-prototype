@@ -182,13 +182,19 @@ type PairingSession = {
   cursor: number;
   requestsByStudentId: Record<StudentId, AdvisorRequest[]>;
   consideredStudentIds: StudentId[];
-  undoStack: PairingEvent[];
+  undoStack: PairingUndoEntry[];
 };
 ```
 
 `undoStack` is persisted and capped at 50 entries per board. On the 51st
 reversible action, discard the oldest entry. A new action after an undo discards
 any abandoned forward history; redo is not part of the prototype.
+
+Each entry stores the prior pairing-session state without nested undo history,
+the board's prior assignments, and a short action label. Restoring that snapshot
+atomically restores requests, pass position, considered students, assignments,
+capacity-derived eligibility, and the remaining undo stack without copying
+unrelated boards.
 
 `orderedStudentIds` is materialized in last-name order when pairing starts and
 then persisted. Sorting uses locale-aware comparison, preserves entry order for

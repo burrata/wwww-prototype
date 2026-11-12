@@ -92,6 +92,27 @@ describe('application document validation', () => {
     ['request from missing advisor', changedPairing((document) => {
       document.pairingSessions['board-1']!.requestsByStudentId['student-2'] = [{ advisorId: 'missing', requestedAt: 'now' }]
     })],
+    ['too many undo entries', changedPairing((document) => {
+      const session = document.pairingSessions['board-1']!
+      session.undoStack = Array.from({ length: 51 }, () => structuredClone(session.undoStack[0]!))
+    })],
+    ['blank undo label', changedPairing((document) => {
+      document.pairingSessions['board-1']!.undoStack[0]!.label = ''
+    })],
+    ['bad undo session', changedPairing((document) => {
+      (document.pairingSessions['board-1']!.undoStack[0] as unknown as Record<string, unknown>).session = null
+    })],
+    ['bad undo assignments', changedPairing((document) => {
+      (document.pairingSessions['board-1']!.undoStack[0] as unknown as Record<string, unknown>).assignments = null
+    })],
+    ['bad undo assignment value', changedPairing((document) => {
+      document.pairingSessions['board-1']!.undoStack[0]!.assignments = [null as never]
+    })],
+    ['undo assignment from another board', changedPairing((document) => {
+      document.pairingSessions['board-1']!.undoStack[0]!.assignments = [{
+        ...document.assignments['assignment-1']!, boardId: 'other',
+      }]
+    })],
   ])('rejects %s', (_name, value) => {
     expect(parseAppDocument(value)).toBeNull()
   })

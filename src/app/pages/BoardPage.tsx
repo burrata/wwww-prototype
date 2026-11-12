@@ -12,6 +12,7 @@ import {
   selectStudentForResolution,
   setAdvisorRequest,
   startBoardPairing,
+  undoLastPairingAction,
 } from '../../domain/commands/pairing-commands'
 import { listPreviousStudentsForAdvisor, listStudentsForBoard } from '../../domain/selectors/student-selectors'
 import { genreLabel, termLabel } from '../../domain/taxonomy'
@@ -108,6 +109,9 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
   function restartPass(): boolean {
     return commit((current) => restartUnresolvedPass(current, boardId))
   }
+  function undoPairingAction(): boolean {
+    return commit((current) => undoLastPairingAction(current, boardId))
+  }
   const advisorList = (
     <AdvisorList
       advisors={advisors}
@@ -182,17 +186,28 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
       )}
 
       {step === 'pairing' && (pairingSession ? (
-        <PairingPresenter
-          document={document}
-          session={pairingSession}
-          onRequest={toggleRequest}
-          onConfirm={confirmPairing}
-          onDefer={deferStudent}
-          onSelectResolution={selectResolution}
-          onCancelResolution={cancelResolution}
-          onConfirmResolution={resolvePairing}
-          onRestartPass={restartPass}
-        />
+        <Stack gap="md">
+          <Group justify="flex-end">
+            <Button
+              variant="default"
+              disabled={pairingSession.undoStack.length === 0}
+              onClick={undoPairingAction}
+            >
+              Undo
+            </Button>
+          </Group>
+          <PairingPresenter
+            document={document}
+            session={pairingSession}
+            onRequest={toggleRequest}
+            onConfirm={confirmPairing}
+            onDefer={deferStudent}
+            onSelectResolution={selectResolution}
+            onCancelResolution={cancelResolution}
+            onConfirmResolution={resolvePairing}
+            onRestartPass={restartPass}
+          />
+        </Stack>
       ) : (
         <Stack gap="md">
           <Alert color="red" title="Setup incomplete">

@@ -7,6 +7,9 @@ import { isPreviousAdvisingRelationship } from './previous-advising-relationship
 import { isRecord, type UnknownRecord } from './validation-helpers'
 import { isAdvisingAssignment } from './advising-assignment-validator'
 import { isPairingSession } from './pairing-session-validator'
+import type { Board } from '../board'
+import type { PairingSessionState } from '../pairing-session'
+import type { AdvisingAssignment } from '../advising-assignment'
 
 const recordKeys = [
   'semesters',
@@ -17,6 +20,47 @@ const recordKeys = [
   'assignments',
   'pairingSessions',
 ] as const
+
+function isPairingStateConsistent(
+  document: AppDocument,
+  board: Board,
+  session: PairingSessionState,
+  assignments: AdvisingAssignment[],
+): boolean {
+  if (session.orderedStudentIds.length === 0) return false
+  if (session.orderedStudentIds.some((id) => !board.studentIds.includes(id))) return false
+  if (session.cursor > session.orderedStudentIds.length) return false
+  if (session.status === 'pairing' && session.cursor >= session.orderedStudentIds.length) return false
+  if (session.status !== 'pairing' && session.cursor !== session.orderedStudentIds.length) return false
+  if (session.consideredStudentIds.some((id) => !board.studentIds.includes(id))) return false
+  for (const [studentId, requests] of Object.entries(session.requestsByStudentId)) {
+    if (!board.studentIds.includes(studentId)) return false
+    if (new Set(requests.map((request) => request.advisorId)).size !== requests.length) return false
+    if (requests.some((request) => !board.advisorIds.includes(request.advisorId))) return false
+  }
+
+  const assignedStudents = new Set<string>()
+  const advisorCounts = new Map<string, number>()
+  for (const assignment of assignments) {
+    const student = document.students[assignment.studentId]
+    const advisor = document.advisors[assignment.advisorId]
+    if (assignment.boardId !== board.id || assignment.semesterId !== board.semesterId) return false
+    if (!student || !advisor || student.boardId !== board.id || advisor.boardId !== board.id) return false
+    if (assignedStudents.has(student.id)) return false
+    if (student.previousAdvisingRelationshipIds.some(
+      (id) => document.previousAdvisingRelationships[id]?.matchedCurrentAdvisorId === advisor.id,
+    )) return false
+    assignedStudents.add(student.id)
+    advisorCounts.set(advisor.id, (advisorCounts.get(advisor.id) ?? 0) + 1)
+    if ((advisorCounts.get(advisor.id) ?? 0) > advisor.capacity) return false
+  }
+  if (session.resolutionStudentId && (
+    session.status !== 'resolving' ||
+    !board.studentIds.includes(session.resolutionStudentId) ||
+    assignedStudents.has(session.resolutionStudentId)
+  )) return false
+  return session.status !== 'complete' || assignedStudents.size === board.studentIds.length
+}
 
 export function parseAppDocument(value: unknown): AppDocument | null {
   if (!isRecord(value) || value.schemaVersion !== 1) return null
@@ -105,24 +149,12 @@ export function parseAppDocument(value: unknown): AppDocument | null {
 
   for (const session of Object.values(document.pairingSessions)) {
     const board = document.boards[session.boardId]
-    if (!board || session.orderedStudentIds.length === 0) return null
-    if (session.orderedStudentIds.some((id) => !board.studentIds.includes(id))) return null
-    if (session.cursor > session.orderedStudentIds.length) return null
-    if (session.status === 'pairing' && session.cursor >= session.orderedStudentIds.length) return null
-    if (session.status !== 'pairing' && session.cursor !== session.orderedStudentIds.length) return null
-    if (session.consideredStudentIds.some((id) => !board.studentIds.includes(id))) return null
-    if (session.resolutionStudentId && (
-      session.status !== 'resolving' ||
-      !board.studentIds.includes(session.resolutionStudentId) ||
-      Object.values(document.assignments).some((item) => item.studentId === session.resolutionStudentId)
-    )) return null
-    for (const [studentId, requests] of Object.entries(session.requestsByStudentId)) {
-      if (!board.studentIds.includes(studentId)) return null
-      if (new Set(requests.map((request) => request.advisorId)).size !== requests.length) return null
-      if (requests.some((request) => !board.advisorIds.includes(request.advisorId))) return null
+    if (!board) return null
+    const boardAssignments = Object.values(document.assignments).filter((item) => item.boardId === board.id)
+    if (!isPairingStateConsistent(document, board, session, boardAssignments)) return null
+    for (const entry of session.undoStack) {
+      if (!isPairingStateConsistent(document, board, entry.session, entry.assignments)) return null
     }
-    const assignmentCount = Object.values(document.assignments).filter((item) => item.boardId === board.id).length
-    if (session.status === 'complete' && assignmentCount !== board.studentIds.length) return null
   }
 
   return document

@@ -219,13 +219,13 @@ Depends on: Milestone 3
 2. Add one request and verify nothing is assigned until confirmation.
 3. Defer a sole request, multiple requests, and no request.
 4. Confirm several pairings until an advisor becomes full.
-5. Confirm that advisor disappears from available choices but remains visible on
-   earlier request history as unavailable.
+5. Confirm that advisor disappears from available choices and is removed from
+   other students' request lists.
 6. Refresh midway and continue at the same student.
 
 ## Milestone 5 — resolve, undo, reset, and reopen
 
-Status: In progress — direct resolution and repeated unpaired passes implemented
+Status: In progress — resolution, repeated unpaired passes, and pairing-action undo implemented
 Size: L  
 Depends on: Milestone 4
 
@@ -238,7 +238,8 @@ Depends on: Milestone 4
 - **M5.2a** Allow selecting any unpaired student after a pass or starting another
   alphabetical pass containing only unpaired students; preserve request history.
 - **M5.3** Implement persisted multi-step undo for requests, deferrals/advances,
-  assignments, and board reopening. Cap each board at 50 actions.
+  assignments, and repeated-pass starts. Cap each board at 50 actions. Board
+  reopening follows with M5.4.
 - **M5.4** Add deliberate revisit, roster-preserving board reset, and completed
   board reopen controls with scoped warnings.
 - **M5.5** Keep insufficient-capacity boards visibly incomplete until setup

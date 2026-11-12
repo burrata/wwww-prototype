@@ -10,6 +10,7 @@ import {
   deferCurrentStudent,
   setAdvisorRequest,
   startBoardPairing,
+  undoLastPairingAction,
 } from './pairing-commands'
 import { documentWithBoard } from '../../test/fixtures'
 import {
@@ -73,6 +74,32 @@ describe('pairing commands', () => {
     expect(remainingCapacityForAdvisor(confirmed, confirmed.advisors['advisor-1']!)).toBe(0)
     expect(advisorIneligibilityReason(confirmed, 'advisor-1', 'student-1')).toBe('Full')
     expect(() => request(confirmed, 'advisor-1')).toThrow('not available')
+
+    const undone = undoLastPairingAction(confirmed, 'board-1')
+    expect(assignmentForStudent(undone, 'student-2')).toBeUndefined()
+    expect(currentPairingStudent(undone, 'board-1')?.id).toBe('student-2')
+    expect(remainingCapacityForAdvisor(undone, undone.advisors['advisor-1']!)).toBe(1)
+    expect(requestsForStudent(undone.pairingSessions['board-1']!, 'student-2')).toHaveLength(1)
+  })
+
+  it('persists at most 50 reversible pairing actions', () => {
+    let document = startBoardPairing(pairingDocument(), 'board-1')
+    expect(() => undoLastPairingAction(document, 'board-1')).toThrow('nothing to undo')
+    for (let index = 0; index < 51; index += 1) {
+      document = setAdvisorRequest(document, {
+        boardId: 'board-1',
+        studentId: 'student-2',
+        advisorId: 'advisor-1',
+        requested: index % 2 === 0,
+        requestedAt: `time-${index}`,
+      })
+    }
+    expect(document.pairingSessions['board-1']?.undoStack).toHaveLength(50)
+    for (let index = 0; index < 50; index += 1) {
+      document = undoLastPairingAction(document, 'board-1')
+    }
+    expect(document.pairingSessions['board-1']?.undoStack).toHaveLength(0)
+    expect(requestsForStudent(document.pairingSessions['board-1']!, 'student-2')).toHaveLength(1)
   })
 
   it('defers no, sole, and multiple requests while preserving request history', () => {

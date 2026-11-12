@@ -84,6 +84,16 @@ function cleanRequestsAfterAssignment(
   return { ...session, requestsByStudentId }
 }
 
+function withUndoEntry(document: AppDocument, session: PairingSession, label: string): PairingSession {
+  const { undoStack, ...sessionSnapshot } = session
+  const entry = {
+    label,
+    session: sessionSnapshot,
+    assignments: listAssignmentsForBoard(document, session.boardId),
+  }
+  return { ...session, undoStack: [...undoStack, entry].slice(-50) }
+}
+
 export function startBoardPairing(
   document: AppDocument,
   boardId: string,
@@ -126,13 +136,14 @@ export function setAdvisorRequest(
   const nextRequests = input.requested
     ? [...requests, { advisorId: input.advisorId, requestedAt: input.requestedAt }]
     : requests.filter((request) => request.advisorId !== input.advisorId)
+  const sessionWithUndo = withUndoEntry(document, session, input.requested ? 'Add request' : 'Remove request')
   return {
     ...document,
     pairingSessions: {
       ...document.pairingSessions,
       [input.boardId]: {
-        ...session,
-        requestsByStudentId: { ...session.requestsByStudentId, [input.studentId]: nextRequests },
+        ...sessionWithUndo,
+        requestsByStudentId: { ...sessionWithUndo.requestsByStudentId, [input.studentId]: nextRequests },
       },
     },
   }
@@ -143,7 +154,7 @@ export function deferCurrentStudent(
   input: { boardId: string; studentId: string },
 ): AppDocument {
   const session = requireCurrentStudent(document, input.boardId, input.studentId)
-  const advanced = advanceSession(document, session, input.studentId)
+  const advanced = advanceSession(document, withUndoEntry(document, session, 'Defer student'), input.studentId)
   return { ...document, pairingSessions: { ...document.pairingSessions, [input.boardId]: advanced } }
 }
 
@@ -189,7 +200,11 @@ export function confirmSoleRequest(
     ...document,
     assignments: { ...document.assignments, [assignment.id]: assignment },
   }
-  const cleanedSession = cleanRequestsAfterAssignment(withAssignment, session, assignment)
+  const cleanedSession = cleanRequestsAfterAssignment(
+    withAssignment,
+    withUndoEntry(document, session, 'Confirm pairing'),
+    assignment,
+  )
   const advanced = advanceSession(withAssignment, cleanedSession, input.studentId)
   return {
     ...withAssignment,
@@ -228,7 +243,7 @@ export function restartUnresolvedPass(document: AppDocument, boardId: string): A
   )
   if (unresolvedStudentIds.length === 0) throw new DomainError('No unpaired students remain.')
   const next: PairingSession = {
-    ...session,
+    ...withUndoEntry(document, session, 'Start another pass'),
     status: 'pairing',
     orderedStudentIds: unresolvedStudentIds,
     cursor: 0,
@@ -272,7 +287,11 @@ export function confirmResolution(
   const boardStudentCount = document.boards[input.boardId]?.studentIds.length ?? 0
   const boardAssignmentCount = Object.values(assignments).filter((item) => item.boardId === input.boardId).length
   const nextSession: PairingSession = {
-    ...cleanRequestsAfterAssignment(withAssignment, session, assignment),
+    ...cleanRequestsAfterAssignment(
+      withAssignment,
+      withUndoEntry(document, session, 'Confirm pairing'),
+      assignment,
+    ),
     status: boardAssignmentCount === boardStudentCount ? 'complete' : 'resolving',
   }
   delete nextSession.resolutionStudentId
@@ -280,5 +299,23 @@ export function confirmResolution(
     ...document,
     assignments,
     pairingSessions: { ...document.pairingSessions, [input.boardId]: nextSession },
+  }
+}
+
+export function undoLastPairingAction(document: AppDocument, boardId: string): AppDocument {
+  const session = requireSession(document, boardId)
+  const entry = session.undoStack.at(-1)
+  if (!entry) throw new DomainError('There is nothing to undo.')
+  const assignments = Object.fromEntries(
+    Object.entries(document.assignments).filter(([, assignment]) => assignment.boardId !== boardId),
+  )
+  for (const assignment of entry.assignments) assignments[assignment.id] = assignment
+  return {
+    ...document,
+    assignments,
+    pairingSessions: {
+      ...document.pairingSessions,
+      [boardId]: { ...entry.session, undoStack: session.undoStack.slice(0, -1) },
+    },
   }
 }

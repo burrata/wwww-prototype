@@ -1,3 +1,5 @@
+import type { AdvisingAssignment } from './advising-assignment'
+
 export type StudentOrderMode = 'last-name'
 export type PairingStatus = 'pairing' | 'resolving' | 'complete'
 
@@ -6,7 +8,7 @@ export type AdvisorRequest = {
   requestedAt: string
 }
 
-export type PairingSession = {
+export type PairingSessionState = {
   boardId: string
   status: PairingStatus
   studentOrderMode: StudentOrderMode
@@ -15,5 +17,14 @@ export type PairingSession = {
   requestsByStudentId: Record<string, AdvisorRequest[]>
   consideredStudentIds: string[]
   resolutionStudentId?: string
-  undoStack: unknown[]
+}
+
+export type PairingUndoEntry = {
+  label: string
+  session: PairingSessionState
+  assignments: AdvisingAssignment[]
+}
+
+export type PairingSession = PairingSessionState & {
+  undoStack: PairingUndoEntry[]
 }

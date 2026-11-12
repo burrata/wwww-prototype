@@ -84,4 +84,23 @@ describe('first pairing pass', () => {
     expect(await screen.findByRole('heading', { name: 'Avery Alpha' })).toBeInTheDocument()
     expect(screen.getByText('Student 1 of 1')).toBeInTheDocument()
   })
+
+  it('undoes confirmed pairings across a refresh', async () => {
+    const user = userEvent.setup()
+    const first = openReview()
+    await user.click(screen.getByRole('button', { name: 'Proceed to pairing' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Add request from Morgan Lee' }))
+    await user.click(screen.getByRole('button', { name: 'Confirm Morgan Lee' }))
+    expect(await screen.findByRole('heading', { name: 'Zoe Zulu' })).toBeInTheDocument()
+
+    first.unmount()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(await screen.findByRole('heading', { name: 'Avery Alpha' })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Remove request from Morgan Lee' })).toBeChecked()
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    expect(screen.getByRole('checkbox', { name: 'Add request from Morgan Lee' })).not.toBeChecked()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
+  })
 })
