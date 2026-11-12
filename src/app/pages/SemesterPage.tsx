@@ -30,7 +30,7 @@ export function SemesterPage({ document, semesterId, commit }: { document: AppDo
       <Title order={1}>{termLabel(semester.term)} {semester.year}</Title>
       {availableGenres.length > 0 && <CreateBoardForm genres={availableGenres} onSubmit={create} />}
       <Title order={2} size="h3">Boards</Title>
-      <BoardList boards={boards} onDelete={(id) => commit((current) => deleteBoard(current, id))} />
+      <BoardList document={document} boards={boards} onDelete={(id) => commit((current) => deleteBoard(current, id))} />
     </Stack>
   )
 }

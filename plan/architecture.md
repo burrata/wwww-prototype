@@ -124,6 +124,7 @@ type Semester = {
 type Board = {
   id: BoardId;
   semesterId: SemesterId;
+  // Derived from genre; retained in schema v1 for stored-data compatibility.
   name: string;
   genre: "fiction" | "poetry" | "creative-nonfiction";
   studentIds: StudentId[];
@@ -195,6 +196,11 @@ the board's prior assignments, and a short action label. Restoring that snapshot
 atomically restores requests, pass position, considered students, assignments,
 capacity-derived eligibility, and the remaining undo stack without copying
 unrelated boards.
+
+A targeted student unassignment creates its own undo entry, removes only that
+assignment, returns the session to resolution, and uses the original assignment
+entry—when still within the 50-action window—to restore request records removed
+when the advisor filled or the student was confirmed.
 
 `orderedStudentIds` is materialized in last-name order when pairing starts and
 then persisted. Sorting uses locale-aware comparison, preserves entry order for

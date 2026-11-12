@@ -1,4 +1,4 @@
-import { Alert, Anchor, Button, Group, Stack, Text, Title } from '@mantine/core'
+import { Alert, Anchor, Button, Group, Stack, Title } from '@mantine/core'
 import type { AppDocument } from '../../domain/app-document'
 import { createAdvisor, deleteAdvisor, updateAdvisor, type AdvisorInput } from '../../domain/commands/advisor-commands'
 import { listAdvisorsForBoard, totalAdvisorCapacity } from '../../domain/selectors/advisor-selectors'
@@ -13,6 +13,7 @@ import {
   setAdvisorRequest,
   startBoardPairing,
   undoLastPairingAction,
+  unassignStudent,
 } from '../../domain/commands/pairing-commands'
 import { listPreviousStudentsForAdvisor, listStudentsForBoard } from '../../domain/selectors/student-selectors'
 import { genreLabel, termLabel } from '../../domain/taxonomy'
@@ -112,6 +113,9 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
   function undoPairingAction(): boolean {
     return commit((current) => undoLastPairingAction(current, boardId))
   }
+  function undoStudentAssignment(studentId: string): boolean {
+    return commit((current) => unassignStudent(current, { boardId, studentId }))
+  }
   const advisorList = (
     <AdvisorList
       advisors={advisors}
@@ -134,8 +138,7 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
     <Stack gap="lg">
       <Anchor href={`#/semesters/${semester.id}`}>← {termLabel(semester.term)} {semester.year}</Anchor>
       <div>
-        <Title order={1}>{board.name}</Title>
-        <Text>{genreLabel(board.genre)}</Text>
+        <Title order={1}>{genreLabel(board.genre)}</Title>
       </div>
       <BoardSetupProgress step={step} />
 
@@ -206,6 +209,7 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
             onCancelResolution={cancelResolution}
             onConfirmResolution={resolvePairing}
             onRestartPass={restartPass}
+            onUnassign={undoStudentAssignment}
           />
         </Stack>
       ) : (

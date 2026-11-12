@@ -1,7 +1,7 @@
 import type { AppDocument } from '../app-document'
 import type { Board, BoardId } from '../board'
 import { DomainError } from '../domain-error'
-import type { Genre } from '../taxonomy'
+import { genreLabel, type Genre } from '../taxonomy'
 
 function requireBoard(document: AppDocument, boardId: BoardId): Board {
   const board = document.boards[boardId]
@@ -11,13 +11,12 @@ function requireBoard(document: AppDocument, boardId: BoardId): Board {
 
 export function createBoard(
   document: AppDocument,
-  input: { id: BoardId; semesterId: string; name: string; genre: Genre },
+  input: { id: BoardId; semesterId: string; genre: Genre },
 ): AppDocument {
   if (!input.id) throw new DomainError('An ID is required.')
   const semester = document.semesters[input.semesterId]
   if (!semester) throw new DomainError('Semester not found.')
-  const name = input.name.trim()
-  if (!name) throw new DomainError('Enter a board name.')
+  const name = genreLabel(input.genre)
   if (document.boards[input.id]) throw new DomainError('That board ID is already in use.')
   if (semester.boardIds.some((id) => document.boards[id]?.genre === input.genre)) {
     throw new DomainError('This semester already has a board for that genre.')
@@ -37,17 +36,16 @@ export function createBoard(
 export function updateBoard(
   document: AppDocument,
   boardId: BoardId,
-  input: { name: string; genre: Genre },
+  input: { genre: Genre },
 ): AppDocument {
   const board = requireBoard(document, boardId)
   const semester = document.semesters[board.semesterId]
   if (!semester) throw new DomainError('Semester not found.')
-  const name = input.name.trim()
-  if (!name) throw new DomainError('Enter a board name.')
+  const name = genreLabel(input.genre)
   if (semester.boardIds.some((id) => id !== boardId && document.boards[id]?.genre === input.genre)) {
     throw new DomainError('This semester already has a board for that genre.')
   }
-  return { ...document, boards: { ...document.boards, [boardId]: { ...board, ...input, name } } }
+  return { ...document, boards: { ...document.boards, [boardId]: { ...board, genre: input.genre, name } } }
 }
 
 export function deleteBoard(document: AppDocument, boardId: BoardId): AppDocument {

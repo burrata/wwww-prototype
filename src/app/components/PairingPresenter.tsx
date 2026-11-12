@@ -27,6 +27,7 @@ type PairingPresenterProps = {
   onCancelResolution(): boolean
   onConfirmResolution(studentId: string, advisorId: string): boolean
   onRestartPass(): boolean
+  onUnassign(studentId: string): boolean
 }
 
 function fullName(person: { givenName: string; familyName: string }): string {
@@ -43,6 +44,7 @@ export function PairingPresenter({
   onCancelResolution,
   onConfirmResolution,
   onRestartPass,
+  onUnassign,
 }: PairingPresenterProps) {
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
@@ -124,7 +126,11 @@ export function PairingPresenter({
                       </Stack>
                     )}
                   </div>
-                  {!assignment && (
+                  {assignment ? (
+                    <Button variant="default" size="sm" fullWidth onClick={() => onUnassign(item.id)}>
+                      Undo assignment
+                    </Button>
+                  ) : (
                     <Button variant="default" size="sm" fullWidth onClick={() => onSelectResolution(item.id)}>
                       Resolve {fullName(item)}
                     </Button>

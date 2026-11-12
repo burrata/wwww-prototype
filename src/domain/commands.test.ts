@@ -60,14 +60,14 @@ describe('board commands', () => {
   it('creates, updates, and deletes a board while maintaining its semester reference', () => {
     const semester = documentWithSemester()
     const created = createBoard(semester, {
-      id: 'b1', semesterId: 'semester-1', name: '  First Board  ', genre: 'fiction',
+      id: 'b1', semesterId: 'semester-1', genre: 'fiction',
     })
-    const updated = updateBoard(created, 'b1', { name: 'Revised', genre: 'poetry' })
+    const updated = updateBoard(created, 'b1', { genre: 'poetry' })
     const deleted = deleteBoard(updated, 'b1')
 
     expect(semester.semesters['semester-1']?.boardIds).toEqual([])
-    expect(created.boards.b1?.name).toBe('First Board')
-    expect(updated.boards.b1).toMatchObject({ name: 'Revised', genre: 'poetry' })
+    expect(created.boards.b1?.name).toBe('Fiction')
+    expect(updated.boards.b1).toMatchObject({ name: 'Poetry', genre: 'poetry' })
     expect(deleted.semesters['semester-1']?.boardIds).toEqual([])
     expect(deleted.boards).toEqual({})
   })
@@ -85,10 +85,10 @@ describe('board commands', () => {
   it('rejects duplicate genres and invalid semester references atomically', () => {
     const document = documentWithBoard()
     expect(() => createBoard(document, {
-      id: 'b2', semesterId: 'semester-1', name: 'Another', genre: 'fiction',
+      id: 'b2', semesterId: 'semester-1', genre: 'fiction',
     })).toThrow('already has a board')
     expect(() => createBoard(document, {
-      id: 'b3', semesterId: 'missing', name: 'Poetry', genre: 'poetry',
+      id: 'b3', semesterId: 'missing', genre: 'poetry',
     })).toThrow('Semester not found')
     expect(document.semesters['semester-1']?.boardIds).toEqual(['board-1'])
     expect(Object.keys(document.boards)).toEqual(['board-1'])
@@ -97,21 +97,18 @@ describe('board commands', () => {
   it('rejects invalid board inputs and conflicting updates', () => {
     const document = documentWithBoard()
     expect(() => createBoard(document, {
-      id: '', semesterId: 'semester-1', name: 'Poetry', genre: 'poetry',
+      id: '', semesterId: 'semester-1', genre: 'poetry',
     })).toThrow('ID')
     expect(() => createBoard(document, {
-      id: 'b2', semesterId: 'semester-1', name: '  ', genre: 'poetry',
-    })).toThrow('board name')
-    expect(() => createBoard(document, {
-      id: 'board-1', semesterId: 'semester-1', name: 'Poetry', genre: 'poetry',
+      id: 'board-1', semesterId: 'semester-1', genre: 'poetry',
     })).toThrow('ID is already')
-    expect(() => updateBoard(document, 'missing', { name: 'Name', genre: 'poetry' })).toThrow('Board not found')
+    expect(() => updateBoard(document, 'missing', { genre: 'poetry' })).toThrow('Board not found')
     expect(() => deleteBoard(document, 'missing')).toThrow('Board not found')
-    expect(() => updateBoard(document, 'board-1', { name: '', genre: 'fiction' })).toThrow('board name')
+    expect(() => updateBoard({ ...document, semesters: {} }, 'board-1', { genre: 'poetry' })).toThrow('Semester not found')
 
     const twoBoards = createBoard(document, {
-      id: 'board-2', semesterId: 'semester-1', name: 'Poetry', genre: 'poetry',
+      id: 'board-2', semesterId: 'semester-1', genre: 'poetry',
     })
-    expect(() => updateBoard(twoBoards, 'board-2', { name: 'Conflict', genre: 'fiction' })).toThrow('already has a board')
+    expect(() => updateBoard(twoBoards, 'board-2', { genre: 'fiction' })).toThrow('already has a board')
   })
 })

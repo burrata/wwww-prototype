@@ -16,7 +16,6 @@ export function documentWithBoard(): AppDocument {
   return createBoard(documentWithSemester(), {
     id: 'board-1',
     semesterId: 'semester-1',
-    name: 'Fiction Board',
     genre: 'fiction',
   })
 }

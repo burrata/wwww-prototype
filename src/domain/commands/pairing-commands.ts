@@ -319,3 +319,52 @@ export function undoLastPairingAction(document: AppDocument, boardId: string): A
     },
   }
 }
+
+export function unassignStudent(
+  document: AppDocument,
+  input: { boardId: string; studentId: string },
+): AppDocument {
+  const session = requireSession(document, input.boardId)
+  if (session.status === 'pairing') throw new DomainError('Finish the current pass before undoing an assignment.')
+  const assignment = assignmentForStudent(document, input.studentId)
+  if (!assignment || assignment.boardId !== input.boardId) throw new DomainError('This student is not assigned.')
+
+  const assignmentEntry = [...session.undoStack].reverse().find((entry) => (
+    entry.label === 'Confirm pairing' && (
+      entry.session.resolutionStudentId === input.studentId ||
+      entry.session.orderedStudentIds[entry.session.cursor] === input.studentId
+    )
+  ))
+  const sessionWithUndo = withUndoEntry(document, session, 'Undo assignment')
+  let requestsByStudentId = sessionWithUndo.requestsByStudentId
+  if (assignmentEntry) {
+    requestsByStudentId = Object.fromEntries(
+      Object.entries(sessionWithUndo.requestsByStudentId).map(([studentId, requests]) => {
+        const priorRequests = assignmentEntry.session.requestsByStudentId[studentId] ?? []
+        if (studentId === input.studentId) return [studentId, priorRequests]
+        const removedAdvisorRequest = priorRequests.find((request) => request.advisorId === assignment.advisorId)
+        if (!removedAdvisorRequest || requests.some((request) => request.advisorId === assignment.advisorId)) {
+          return [studentId, requests]
+        }
+        return [studentId, [...requests, removedAdvisorRequest]]
+      }),
+    )
+  }
+
+  const assignments = { ...document.assignments }
+  delete assignments[assignment.id]
+  const fullOrder = orderedStudentIds(document, input.boardId)
+  const nextSession: PairingSession = {
+    ...sessionWithUndo,
+    status: 'resolving',
+    orderedStudentIds: fullOrder,
+    cursor: fullOrder.length,
+    requestsByStudentId,
+  }
+  delete nextSession.resolutionStudentId
+  return {
+    ...document,
+    assignments,
+    pairingSessions: { ...document.pairingSessions, [input.boardId]: nextSession },
+  }
+}

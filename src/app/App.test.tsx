@@ -21,17 +21,16 @@ describe('semester and board setup', () => {
     await user.click(screen.getByRole('button', { name: 'Create semester' }))
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Spring 2027' })).toBeInTheDocument()
-    await user.type(screen.getByRole('textbox', { name: /Board name/ }), 'First Fiction')
     await user.selectOptions(screen.getByLabelText('Genre'), 'fiction')
     await user.click(screen.getByRole('button', { name: 'Create board' }))
 
     expect(await screen.findByRole('heading', { level: 2, name: 'Add advisors' })).toBeInTheDocument()
     expect(window.location.hash).toMatch(/^#\/boards\/.+\/advisors$/)
-    expect(window.localStorage.getItem(STORAGE_KEY)).toContain('First Fiction')
+    expect(window.localStorage.getItem(STORAGE_KEY)).toContain('Fiction')
 
     await user.click(screen.getByRole('link', { name: /Spring 2027/ }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Spring 2027' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'First Fiction' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Fiction' })).toBeInTheDocument()
   })
 
   it('loads saved data after remounting', async () => {
@@ -55,14 +54,13 @@ describe('semester and board setup', () => {
     await user.type(screen.getByRole('spinbutton', { name: /Year/ }), '2029')
     await user.click(screen.getByRole('button', { name: 'Create semester' }))
     await screen.findByRole('heading', { name: 'Spring 2029' })
-    await user.type(screen.getByRole('textbox', { name: /Board name/ }), 'Poetry Group')
     await user.selectOptions(screen.getByLabelText('Genre'), 'poetry')
     await user.click(screen.getByRole('button', { name: 'Create board' }))
     await user.click(await screen.findByRole('link', { name: /Spring 2029/ }))
-    await user.click(screen.getByRole('button', { name: 'Delete board Poetry Group' }))
+    await user.click(screen.getByRole('button', { name: 'Delete board Poetry' }))
 
-    expect(await screen.findByRole('dialog', { name: 'Delete board “Poetry Group”?' })).toBeInTheDocument()
+    expect(await screen.findByRole('dialog', { name: 'Delete board “Poetry”?' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Delete board' }))
-    await waitFor(() => expect(screen.queryByRole('link', { name: 'Poetry Group' })).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Poetry' })).not.toBeInTheDocument())
   })
 })

@@ -51,13 +51,14 @@ assignments. Multi-user participation is not prototype scope.
 
 1. Create a semester by selecting Spring or Fall and entering a year.
 2. Open an existing semester or delete it after confirmation.
-3. View semester-level progress: boards, students assigned, students unresolved,
-   and remaining advisor capacity.
+3. View each board's student and advisor counts. After pairing starts, an
+   incomplete board also shows resolved and unresolved student counts.
 
 ### 2. Board setup
 
 1. Add up to three boards to a semester: at most one for each supported genre.
-2. Give each board a human-readable name and choose exactly one genre.
+2. Choose exactly one genre. The genre is the board's display name; the user
+   does not enter a separate board name.
 3. Creating a board starts a guided onboarding flow. The first screen adds only
    advisors and capacities. Capacity defaults to 3 and must be at least 1.
 4. Continue to a student-only entry screen. Add students with their program
@@ -129,6 +130,10 @@ browser restarts.
 5. From the post-pass list, allow the facilitator to open any unpaired student
    directly or start another alphabetical pass through all unpaired students.
    Preserve remaining requests and assignments across passes.
+6. Allow the facilitator to undo a specific student's assignment from the
+   post-pass list. Return that student to unresolved status, free the advisor's
+   capacity, and restore requests removed by that assignment when retained undo
+   history is available.
 
 ### 5. Results
 
