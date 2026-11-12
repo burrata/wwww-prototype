@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import type { AppDocument } from './app-document'
 import { parseAppDocument } from './validation/app-document-validator'
-import { documentWithBoard, documentWithSemester } from '../test/fixtures'
+import { documentWithAdvisor, documentWithBoard, documentWithSemester } from '../test/fixtures'
 
 function changed(change: (document: AppDocument) => void): AppDocument {
   const document = structuredClone(documentWithBoard())
+  change(document)
+  return document
+}
+
+function changedAdvisor(change: (document: AppDocument) => void): AppDocument {
+  const document = structuredClone(documentWithAdvisor())
   change(document)
   return document
 }
@@ -13,6 +19,7 @@ describe('application document validation', () => {
   it('accepts valid empty and populated documents', () => {
     expect(parseAppDocument(documentWithSemester())).toEqual(documentWithSemester())
     expect(parseAppDocument(documentWithBoard())).toEqual(documentWithBoard())
+    expect(parseAppDocument(documentWithAdvisor())).toEqual(documentWithAdvisor())
   })
 
   it.each([
@@ -35,9 +42,27 @@ describe('application document validation', () => {
     ['bad genre', changed((document) => { document.boards['board-1']!.genre = 'drama' as 'fiction' })],
     ['bad student IDs', changed((document) => { document.boards['board-1']!.studentIds = [4 as unknown as string] })],
     ['bad advisor IDs', changed((document) => { document.boards['board-1']!.advisorIds = [4 as unknown as string] })],
+    ['duplicate advisor reference', changedAdvisor((document) => { document.boards['board-1']!.advisorIds.push('advisor-1') })],
     ['missing referenced board', changed((document) => { delete document.boards['board-1'] })],
     ['wrong board owner', changed((document) => { document.boards['board-1']!.semesterId = 'other' })],
     ['orphan board', changed((document) => { document.semesters['semester-1']!.boardIds = [] })],
+  ])('rejects %s', (_name, value) => {
+    expect(parseAppDocument(value)).toBeNull()
+  })
+
+  it.each([
+    ['bad advisor value', changedAdvisor((document) => { (document.advisors as unknown as Record<string, unknown>)['advisor-1'] = null })],
+    ['mismatched advisor ID', changedAdvisor((document) => { document.advisors['advisor-1']!.id = 'other' })],
+    ['empty advisor semester', changedAdvisor((document) => { document.advisors['advisor-1']!.semesterId = '' })],
+    ['empty advisor board', changedAdvisor((document) => { document.advisors['advisor-1']!.boardId = '' })],
+    ['blank advisor given name', changedAdvisor((document) => { document.advisors['advisor-1']!.givenName = ' ' })],
+    ['blank advisor family name', changedAdvisor((document) => { document.advisors['advisor-1']!.familyName = ' ' })],
+    ['decimal capacity', changedAdvisor((document) => { document.advisors['advisor-1']!.capacity = 1.5 })],
+    ['zero capacity', changedAdvisor((document) => { document.advisors['advisor-1']!.capacity = 0 })],
+    ['missing advisor entity', changedAdvisor((document) => { delete document.advisors['advisor-1'] })],
+    ['advisor on wrong board', changedAdvisor((document) => { document.advisors['advisor-1']!.boardId = 'other' })],
+    ['advisor in wrong semester', changedAdvisor((document) => { document.advisors['advisor-1']!.semesterId = 'other' })],
+    ['orphan advisor', changedAdvisor((document) => { document.boards['board-1']!.advisorIds = [] })],
   ])('rejects %s', (_name, value) => {
     expect(parseAppDocument(value)).toBeNull()
   })

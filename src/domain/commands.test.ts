@@ -13,7 +13,7 @@ import {
   DomainError,
 } from './domain-error'
 import { createEmptyDocument } from './app-document'
-import { documentWithBoard, documentWithSemester } from '../test/fixtures'
+import { documentWithAdvisor, documentWithBoard, documentWithSemester } from '../test/fixtures'
 
 describe('semester commands', () => {
   it('creates and updates a semester without mutating the input', () => {
@@ -32,9 +32,10 @@ describe('semester commands', () => {
   })
 
   it('deletes a semester and its boards', () => {
-    const result = deleteSemester(documentWithBoard(), 'semester-1')
+    const result = deleteSemester(documentWithAdvisor(), 'semester-1')
     expect(result.semesters).toEqual({})
     expect(result.boards).toEqual({})
+    expect(result.advisors).toEqual({})
   })
 
   it('rejects invalid IDs, years, duplicate IDs, missing records, and duplicate updates', () => {
@@ -64,6 +65,12 @@ describe('board commands', () => {
     expect(updated.boards.b1).toMatchObject({ name: 'Revised', genre: 'poetry' })
     expect(deleted.semesters['semester-1']?.boardIds).toEqual([])
     expect(deleted.boards).toEqual({})
+  })
+
+  it('deletes the advisors owned by a deleted board', () => {
+    const result = deleteBoard(documentWithAdvisor(), 'board-1')
+    expect(result.boards).toEqual({})
+    expect(result.advisors).toEqual({})
   })
 
   it('rejects duplicate genres and invalid semester references atomically', () => {

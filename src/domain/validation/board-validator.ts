@@ -15,6 +15,8 @@ export function isBoard(value: unknown, key: string): value is Board {
     typeof value.genre === 'string' &&
     GENRES.includes(value.genre as (typeof GENRES)[number]) &&
     isStringArray(value.studentIds) &&
-    isStringArray(value.advisorIds)
+    new Set(value.studentIds).size === value.studentIds.length &&
+    isStringArray(value.advisorIds) &&
+    new Set(value.advisorIds).size === value.advisorIds.length
   )
 }

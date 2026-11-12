@@ -55,7 +55,12 @@ export function deleteSemester(document: AppDocument, semesterId: SemesterId): A
   const semester = requireSemester(document, semesterId)
   const semesters = { ...document.semesters }
   const boards = { ...document.boards }
+  const advisors = { ...document.advisors }
   delete semesters[semesterId]
-  for (const boardId of semester.boardIds) delete boards[boardId]
-  return { ...document, semesters, boards }
+  for (const boardId of semester.boardIds) {
+    const board = boards[boardId]
+    if (board) for (const advisorId of board.advisorIds) delete advisors[advisorId]
+    delete boards[boardId]
+  }
+  return { ...document, semesters, boards, advisors }
 }

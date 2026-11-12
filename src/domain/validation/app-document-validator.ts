@@ -1,4 +1,5 @@
 import type { AppDocument } from '../app-document'
+import { isAdvisor } from './advisor-validator'
 import { isBoard } from './board-validator'
 import { isSemester } from './semester-validator'
 import { isRecord, type UnknownRecord } from './validation-helpers'
@@ -19,8 +20,10 @@ export function parseAppDocument(value: unknown): AppDocument | null {
 
   const semesters = value.semesters as UnknownRecord
   const boards = value.boards as UnknownRecord
+  const advisors = value.advisors as UnknownRecord
   if (Object.entries(semesters).some(([id, item]) => !isSemester(item, id))) return null
   if (Object.entries(boards).some(([id, item]) => !isBoard(item, id))) return null
+  if (Object.entries(advisors).some(([id, item]) => !isAdvisor(item, id))) return null
 
   const document = value as AppDocument
   const semesterKeys = new Set(Object.keys(document.semesters))
@@ -42,6 +45,14 @@ export function parseAppDocument(value: unknown): AppDocument | null {
   for (const board of Object.values(document.boards)) {
     if (!semesterKeys.has(board.semesterId)) return null
     if (!document.semesters[board.semesterId]?.boardIds.includes(board.id)) return null
+    for (const advisorId of board.advisorIds) {
+      const advisor = document.advisors[advisorId]
+      if (!advisor || advisor.boardId !== board.id || advisor.semesterId !== board.semesterId) return null
+    }
+  }
+
+  for (const advisor of Object.values(document.advisors)) {
+    if (!document.boards[advisor.boardId]?.advisorIds.includes(advisor.id)) return null
   }
 
   return document

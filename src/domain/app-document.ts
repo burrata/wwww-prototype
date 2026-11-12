@@ -1,4 +1,5 @@
 import type { Board, BoardId } from './board'
+import type { Advisor, AdvisorId } from './advisor'
 import type { Semester, SemesterId } from './semester'
 
 export type AppDocument = {
@@ -6,7 +7,7 @@ export type AppDocument = {
   semesters: Record<SemesterId, Semester>
   boards: Record<BoardId, Board>
   students: Record<string, unknown>
-  advisors: Record<string, unknown>
+  advisors: Record<AdvisorId, Advisor>
   previousAdvisingRelationships: Record<string, unknown>
   assignments: Record<string, unknown>
   pairingSessions: Record<string, unknown>

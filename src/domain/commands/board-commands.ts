@@ -55,10 +55,13 @@ export function deleteBoard(document: AppDocument, boardId: BoardId): AppDocumen
   const semester = document.semesters[board.semesterId]
   if (!semester) throw new DomainError('Semester not found.')
   const boards = { ...document.boards }
+  const advisors = { ...document.advisors }
   delete boards[boardId]
+  for (const advisorId of board.advisorIds) delete advisors[advisorId]
   return {
     ...document,
     boards,
+    advisors,
     semesters: {
       ...document.semesters,
       [semester.id]: { ...semester, boardIds: semester.boardIds.filter((id) => id !== boardId) },
