@@ -3,6 +3,16 @@ import type { AppDocument } from '../../domain/app-document'
 import { createAdvisor, deleteAdvisor, updateAdvisor, type AdvisorInput } from '../../domain/commands/advisor-commands'
 import { listAdvisorsForBoard, totalAdvisorCapacity } from '../../domain/selectors/advisor-selectors'
 import { createStudent, deleteStudent, updateStudent, type StudentInput } from '../../domain/commands/student-commands'
+import {
+  cancelStudentResolution,
+  confirmResolution,
+  confirmSoleRequest,
+  deferCurrentStudent,
+  restartUnresolvedPass,
+  selectStudentForResolution,
+  setAdvisorRequest,
+  startBoardPairing,
+} from '../../domain/commands/pairing-commands'
 import { listPreviousStudentsForAdvisor, listStudentsForBoard } from '../../domain/selectors/student-selectors'
 import { genreLabel, termLabel } from '../../domain/taxonomy'
 import { AdvisorList } from '../components/AdvisorList'
@@ -12,6 +22,7 @@ import { StudentList } from '../components/StudentList'
 import { BoardFeasibility } from '../components/BoardFeasibility'
 import { BoardSetupProgress } from '../components/BoardSetupProgress'
 import { AdvisorOverview } from '../components/AdvisorOverview'
+import { PairingPresenter } from '../components/PairingPresenter'
 import { navigate, type BoardStep } from '../routing'
 import { NotFoundPage } from './NotFoundPage'
 
@@ -31,13 +42,16 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
   if (!semester) return <NotFoundPage />
   const advisors = listAdvisorsForBoard(document, boardId)
   const students = listStudentsForBoard(document, boardId)
+  const pairingSession = document.pairingSessions[boardId]
   const previousStudentsByAdvisorId = Object.fromEntries(
     advisors.map((advisor) => [advisor.id, listPreviousStudentsForAdvisor(document, advisor.id)]),
   )
-  const inferredStep: BoardStep = advisors.length === 0
+  const inferredStep: BoardStep = pairingSession
+    ? 'pairing'
+    : advisors.length === 0
     ? 'advisors'
     : students.length === 0 ? 'students' : 'review'
-  const step = requestedStep ?? inferredStep
+  const step = pairingSession ? 'pairing' : requestedStep ?? inferredStep
   const capacityMatches = students.length > 0 && totalAdvisorCapacity(advisors) === students.length
 
   function addAdvisor(value: AdvisorInput): boolean {
@@ -49,6 +63,50 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
     return commit((current) => createStudent(current, {
       id: crypto.randomUUID(), boardId, ...value,
     }))
+  }
+  function beginPairing(): void {
+    if (commit((current) => startBoardPairing(current, boardId))) {
+      navigate(`/boards/${boardId}/pairing`)
+    }
+  }
+  function toggleRequest(studentId: string, advisorId: string, requested: boolean): boolean {
+    return commit((current) => setAdvisorRequest(current, {
+      boardId,
+      studentId,
+      advisorId,
+      requested,
+      requestedAt: new Date().toISOString(),
+    }))
+  }
+  function deferStudent(studentId: string): boolean {
+    return commit((current) => deferCurrentStudent(current, { boardId, studentId }))
+  }
+  function confirmPairing(studentId: string, advisorId: string): boolean {
+    return commit((current) => confirmSoleRequest(current, {
+      id: crypto.randomUUID(),
+      boardId,
+      studentId,
+      advisorId,
+      assignedAt: new Date().toISOString(),
+    }))
+  }
+  function selectResolution(studentId: string): boolean {
+    return commit((current) => selectStudentForResolution(current, { boardId, studentId }))
+  }
+  function cancelResolution(): boolean {
+    return commit((current) => cancelStudentResolution(current, boardId))
+  }
+  function resolvePairing(studentId: string, advisorId: string): boolean {
+    return commit((current) => confirmResolution(current, {
+      id: crypto.randomUUID(),
+      boardId,
+      studentId,
+      advisorId,
+      assignedAt: new Date().toISOString(),
+    }))
+  }
+  function restartPass(): boolean {
+    return commit((current) => restartUnresolvedPass(current, boardId))
   }
   const advisorList = (
     <AdvisorList
@@ -116,23 +174,29 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
               <Button component="a" href={`#/boards/${board.id}/advisors`} variant="default">Edit advisors</Button>
               <Button component="a" href={`#/boards/${board.id}/students`} variant="default">Edit students</Button>
             </Group>
-            <Button onClick={() => navigate(`/boards/${board.id}/pairing`)} disabled={!capacityMatches}>
+            <Button onClick={beginPairing} disabled={!capacityMatches}>
               Proceed to pairing
             </Button>
           </Group>
         </Stack>
       )}
 
-      {step === 'pairing' && (capacityMatches ? (
-        <Stack gap="md">
-          <Title order={2}>Pairing</Title>
-          <Text>Roster ready. Pairing tools are not yet available.</Text>
-          <Group><Button component="a" href={`#/boards/${board.id}/review`} variant="default">Back to review</Button></Group>
-        </Stack>
+      {step === 'pairing' && (pairingSession ? (
+        <PairingPresenter
+          document={document}
+          session={pairingSession}
+          onRequest={toggleRequest}
+          onConfirm={confirmPairing}
+          onDefer={deferStudent}
+          onSelectResolution={selectResolution}
+          onCancelResolution={cancelResolution}
+          onConfirmResolution={resolvePairing}
+          onRestartPass={restartPass}
+        />
       ) : (
         <Stack gap="md">
           <Alert color="red" title="Setup incomplete">
-            Advisor capacity must match the student count.
+            Start pairing from Review after advisor capacity matches the student count.
           </Alert>
           <Group><Button component="a" href={`#/boards/${board.id}/review`}>Review board</Button></Group>
         </Stack>

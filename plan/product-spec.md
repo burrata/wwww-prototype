@@ -88,12 +88,12 @@ assignments. Multi-user participation is not prototype scope.
 
 ### 3. Live pairing: first pass
 
-1. Before starting, choose student presentation order: entry order (default) or
-   alphabetical by last name. Starting the session fixes that order unless the
-   board is reset.
+1. Starting pairing orders students alphabetically by last name. The materialized
+   order stays fixed unless the board is reset; equal last names retain entry order.
 2. Present one unassigned student prominently, with program stage, previous
    advisors, student-requested advisors, and progress.
-3. Show eligible advisors with remaining capacity and relevant history.
+3. Show eligible advisors with remaining capacity and relevant history in the
+   same responsive card grid used for the post-pass student list.
 4. The facilitator toggles advisor requests for the current student. A request
    never creates an assignment by itself.
 5. If exactly one eligible advisor has requested the student, show a separate
@@ -104,8 +104,8 @@ assignments. Multi-user participation is not prototype scope.
 7. If no advisor requests the student, defer the student as unresolved.
 8. Each confirmed assignment consumes one capacity slot.
 9. When an advisor becomes full, they cease to be eligible for all other
-   unassigned students. Their historical requests remain visible but are marked
-   unavailable rather than erased.
+   unassigned students and are removed from those students' request lists.
+   Confirming a student removes every other requester from that student's list.
 10. Advance until every student has been considered once.
 
 The facilitator can step backward through the latest 50 reversible pairing
@@ -116,11 +116,19 @@ browser restarts.
 ### 4. Conflict resolution
 
 1. List unresolved students, contested students first, with currently eligible
-   requesters and their soft-preference context.
+   requesters and their soft-preference context. Show program stage as subdued
+   text above the student name. Use up to three cards per row on large screens
+   and collapse the grid to full-width rows on small screens. Within each card,
+   show requesters as a vertical list rather than an inline row.
 2. Allow the facilitator to select and confirm any eligible advisor from the
    board, including one who did not request the student.
-3. Recalculate capacity and eligibility after every assignment.
+3. Recalculate capacity and eligibility after every assignment. Reject a
+   pairing that would make it impossible to assign every remaining student
+   within capacity and previous-advisor restrictions.
 4. Keep unresolved students visible if capacity makes completion impossible.
+5. From the post-pass list, allow the facilitator to open any unpaired student
+   directly or start another alphabetical pass through all unpaired students.
+   Preserve remaining requests and assignments across passes.
 
 ### 5. Results
 
@@ -154,8 +162,9 @@ browser restarts.
   that student.
 - Removing an advisor or student with requests/assignments requires an explicit
   resolution step.
-- Request history is retained for transparency even when a requester later
-  becomes ineligible.
+- A confirmed student retains only the assigned advisor from their request list,
+  if that advisor requested them. A full advisor is removed from every other
+  student's request list.
 - Completion means all students are assigned, not merely considered.
 - A board with insufficient total eligible capacity remains incomplete until
   capacities are increased or other valid roster changes provide enough slots;
@@ -259,7 +268,7 @@ single-facilitator architecture.
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
 | 2026-11-12 | Prototype is a facilitator-operated, local-first web app. | Accepted | One facilitator records a synchronous meeting; no participant devices or remote interaction are needed. |
-| 2026-11-12 | Preserve requests from advisors who later fill, but mark them unavailable. | Proposed | Keeps the session explainable while meeting the rule that full advisors leave the running. |
+| 2026-11-12 | Remove a full advisor from other students' request lists and remove competing requests once a student is paired. | Accepted | Keeps the working list focused on advisors who can still be assigned and makes the confirmed pairing definitive. |
 | 2026-11-12 | “Semester” and “program stage” are distinct terms. | Accepted | Removes a collision in the supplied data fields. |
 | 2026-11-12 | A board represents one genre cohort; advisors belong to only one board. | Accepted | Confirmed by the product owner; capacity and eligibility are therefore board-local. |
 | 2026-11-12 | Students belong to one board, and each semester has at most one board per genre. | Accepted | Confirmed by the product owner. |
@@ -273,7 +282,7 @@ single-facilitator architecture.
 | 2026-11-12 | Do not include sample data initially. | Accepted | Confirmed by the product owner. |
 | 2026-11-12 | Support the latest two stable desktop Chrome releases. | Accepted | Matches the meeting environment. |
 | 2026-11-12 | Persist up to 50 undoable pairing actions per board. | Accepted | Provides multi-step recovery across refreshes while keeping local history bounded. |
-| 2026-11-12 | Support entry order or alphabetical-by-last-name pairing order. | Accepted | The facilitator can choose per board; entry order is the default. |
+| 2026-11-12 | Always pair students alphabetically by last name. | Accepted | Removes an unnecessary setup choice; entry order remains the stable tie-breaker for equal last names. |
 | 2026-11-12 | Store given and family names separately and optimize roster forms for Tab-key entry. | Accepted | Makes last-name ordering reliable and repeated manual entry efficient. |
 | 2026-11-12 | Defer CSV roster import but preserve a clean import boundary. | Accepted | Manual entry remains first scope; a strict-template importer can be added without changing the domain model. |
 | 2026-11-12 | Show requested and previous advisors as info-bearing rounded indicators; accept previous advisors by line or comma. | Accepted | Makes active, inactive, and excluded relationships visible without adding explanatory status text to every roster row. |

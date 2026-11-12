@@ -45,3 +45,20 @@ export function documentWithStudent(): AppDocument {
     ],
   })
 }
+
+export function documentReadyForPairing(): AppDocument {
+  const firstAdvisor = createAdvisor(documentWithBoard(), {
+    id: 'advisor-1', boardId: 'board-1', givenName: 'Morgan', familyName: 'Lee', capacity: 1,
+  })
+  const advisors = createAdvisor(firstAdvisor, {
+    id: 'advisor-2', boardId: 'board-1', givenName: 'Robin', familyName: 'Shah', capacity: 1,
+  })
+  const firstStudent = createStudent(advisors, {
+    id: 'student-1', boardId: 'board-1', givenName: 'Zoe', familyName: 'Zulu', programStage: 'first',
+    studentRequestedAdvisorIds: ['advisor-1'], previousAdvisors: [],
+  })
+  return createStudent(firstStudent, {
+    id: 'student-2', boardId: 'board-1', givenName: 'Avery', familyName: 'Alpha', programStage: 'final',
+    studentRequestedAdvisorIds: [], previousAdvisors: [],
+  })
+}

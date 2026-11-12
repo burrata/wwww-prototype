@@ -13,7 +13,8 @@ import {
   DomainError,
 } from './domain-error'
 import { createEmptyDocument } from './app-document'
-import { documentWithBoard, documentWithSemester, documentWithStudent } from '../test/fixtures'
+import { documentReadyForPairing, documentWithBoard, documentWithSemester } from '../test/fixtures'
+import { startBoardPairing } from './commands/pairing-commands'
 
 describe('semester commands', () => {
   it('creates and updates a semester without mutating the input', () => {
@@ -32,12 +33,14 @@ describe('semester commands', () => {
   })
 
   it('deletes a semester and its boards', () => {
-    const result = deleteSemester(documentWithStudent(), 'semester-1')
+    const result = deleteSemester(startBoardPairing(documentReadyForPairing(), 'board-1'), 'semester-1')
     expect(result.semesters).toEqual({})
     expect(result.boards).toEqual({})
     expect(result.advisors).toEqual({})
     expect(result.students).toEqual({})
     expect(result.previousAdvisingRelationships).toEqual({})
+    expect(result.assignments).toEqual({})
+    expect(result.pairingSessions).toEqual({})
   })
 
   it('rejects invalid IDs, years, duplicate IDs, missing records, and duplicate updates', () => {
@@ -70,11 +73,13 @@ describe('board commands', () => {
   })
 
   it('deletes the advisors owned by a deleted board', () => {
-    const result = deleteBoard(documentWithStudent(), 'board-1')
+    const result = deleteBoard(startBoardPairing(documentReadyForPairing(), 'board-1'), 'board-1')
     expect(result.boards).toEqual({})
     expect(result.advisors).toEqual({})
     expect(result.students).toEqual({})
     expect(result.previousAdvisingRelationships).toEqual({})
+    expect(result.assignments).toEqual({})
+    expect(result.pairingSessions).toEqual({})
   })
 
   it('rejects duplicate genres and invalid semester references atomically', () => {

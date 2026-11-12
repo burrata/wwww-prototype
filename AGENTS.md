@@ -22,13 +22,12 @@ explicitly changes that constraint.
 
 ## Repository map
 
-The repository is in active implementation. Current and planned locations are:
+The repository is in active implementation. Current locations are:
 
-- `src/app/`: thin app orchestration, providers, routing, pages, and reusable UI components
-- `src/styles/`: global design tokens and shared styles
-- `src/test/`: shared test setup, render helpers, and fixtures
-- `src/domain/`: framework-independent types, invariants, and pairing rules
-- `src/storage/`: local persistence, schema migration, import/export, and reset
+- `src/app/`: route containers, reusable Mantine components, and UI workflow tests
+- `src/domain/`: entity types, validation, pure commands, selectors, and unit tests
+- `src/storage/`: validated local persistence behind an adapter boundary
+- `src/test/`: shared fixtures, render helpers, and browser API mocks
 - `plan/`: living product and architecture decisions
 - `.github/workflows/`: CI and GitHub Pages deployment
 
@@ -127,6 +126,6 @@ tools or hand-editing stored data.
 - Roster setup is manual and sequential: semester, board, advisors, students
 - Person entry uses separate given/family names and a keyboard-first tab order
 - Persist the latest 50 reversible pairing actions per board for undo
-- Pairing order is board-selectable: entry order (default) or last-name order
+- Pairing order is alphabetical by last name, with entry order as the stable tie-breaker
 - Product and architecture questions marked `Open` are not implementation
   decisions

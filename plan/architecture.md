@@ -177,7 +177,7 @@ type AdvisorRequest = {
 type PairingSession = {
   boardId: BoardId;
   status: "setup" | "pairing" | "resolving" | "complete";
-  studentOrderMode: "entry" | "last-name";
+  studentOrderMode: "last-name";
   orderedStudentIds: StudentId[];
   cursor: number;
   requestsByStudentId: Record<StudentId, AdvisorRequest[]>;
@@ -190,11 +190,12 @@ type PairingSession = {
 reversible action, discard the oldest entry. A new action after an undo discards
 any abandoned forward history; redo is not part of the prototype.
 
-`orderedStudentIds` is materialized when pairing starts from the selected order
-mode and then persisted. Entry order follows the board's `studentIds`. Last-name
-order uses locale-aware comparison, preserves entry order for equal sort keys,
-and does not change mid-session when names are edited; a board reset is required
-to generate a new session order.
+`orderedStudentIds` is materialized in last-name order when pairing starts and
+then persisted. Sorting uses locale-aware comparison, preserves entry order for
+equal sort keys, and does not change mid-session when names are edited; a board
+reset is required to generate a new session order. Starting another pass filters
+that fixed order to currently unassigned students, resets the cursor, and keeps
+all request and assignment records intact.
 
 This is a starting schema, not a frozen API. An advisor record is board-specific:
 advisors are not shared across boards, so capacity and eligibility are calculated
@@ -252,20 +253,22 @@ that advisor requested the student. The first-pass UI surfaces confirmation next
 to a sole requester; multiple or zero requests lead to deferral unless the
 facilitator makes an explicit valid assignment. Every assignment validates board
 membership, assignment uniqueness, remaining capacity, previous-advisor
-exclusion, and session status before changing state.
+exclusion, session status, and whether a complete matching remains possible
+before changing state. Feasibility uses capacity-aware bipartite matching across
+all remaining students and advisor slots.
 
 Request changes, student deferrals/advances, confirmed assignments, and reopening
 a completed board are undoable pairing actions. Roster/setup edits and
 destructive reset/delete/clear operations are not part of this stack. Board reset
 clears the stack after its explicit confirmation.
 
-`startBoardPairing` accepts the chosen student order mode and validates that all
-students have a usable last-name sort value when that mode is selected.
+`startBoardPairing` always materializes last-name order and validates that all
+students have a usable last-name sort value.
 
-When an assignment fills an advisor, selectors remove that advisor from the
-eligible set for every other unassigned student on that board. Stored request
-events remain intact, so undoing or increasing capacity can make them eligible
-again.
+When an assignment fills an advisor, the assignment command removes that advisor
+from every other student's stored request list on the board. It also removes all
+other requesters from the assigned student's list. The paired advisor remains on
+that student's list only when they had requested the student.
 
 ## Persistence and lifecycle
 
@@ -507,7 +510,7 @@ task status and acceptance details.
 | 2026-11-12 | Target the latest two stable desktop Chrome releases. | Accepted | Matches the known operating environment. |
 | 2026-11-12 | Ship without sample/demo data. | Accepted | Avoids mixing demonstration and real participant data. |
 | 2026-11-12 | Persist a 50-entry undo stack per board. | Accepted | Supports recovery across refreshes with a predictable local-storage bound. |
-| 2026-11-12 | Materialize entry or last-name order when pairing starts. | Accepted | Keeps presentation deterministic across refresh, edits, and undo. |
+| 2026-11-12 | Materialize last-name order when pairing starts. | Accepted | Keeps presentation deterministic without adding a facilitator choice; entry order breaks ties. |
 | 2026-11-12 | Store given/family names separately and use native tab order for roster entry. | Accepted | Supports reliable sorting and efficient keyboard entry without custom focus machinery. |
 | 2026-11-12 | Design CSV import as a later strict-template, validate-preview-commit adapter. | Accepted | Keeps initial scope manual while avoiding a future domain-model rewrite. |
 | 2026-11-12 | Use Vitest with Node and jsdom projects, Testing Library, user-event, and V8 coverage. | Accepted | Aligns with Vite while keeping domain tests fast and UI tests user-centered. |
@@ -517,6 +520,7 @@ task status and acceptance details.
 | 2026-11-12 | Use hash-based navigation without a routing dependency. | Accepted | Hash URLs survive GitHub Pages refreshes and cover the prototype's small view hierarchy. |
 | 2026-11-12 | Use Mantine 9 for UI primitives and keep containers/components modular. | Accepted | Mantine supports React 19 and Vite, supplies accessible controls and dialogs, and avoids maintaining a bespoke component layer; entity-focused modules keep behavior independently testable. |
 | 2026-11-12 | Represent board onboarding as guarded hash subroutes rather than persisted step state. | Accepted | Refresh/back navigation remains stable while Review and Pairing eligibility are always derived from the current rosters. |
+| 2026-11-12 | Lock roster commands after a pairing session starts. | Accepted | Preserves fixed order and prevents roster or capacity changes from invalidating an active session; reset will reopen setup in Milestone 5. |
 
 ## Reference links
 

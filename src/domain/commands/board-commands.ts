@@ -58,6 +58,9 @@ export function deleteBoard(document: AppDocument, boardId: BoardId): AppDocumen
   const advisors = { ...document.advisors }
   const students = { ...document.students }
   const relationships = { ...document.previousAdvisingRelationships }
+  const assignments = Object.fromEntries(Object.entries(document.assignments).filter(([, item]) => item.boardId !== boardId))
+  const pairingSessions = { ...document.pairingSessions }
+  delete pairingSessions[boardId]
   delete boards[boardId]
   for (const advisorId of board.advisorIds) delete advisors[advisorId]
   for (const studentId of board.studentIds) {
@@ -73,6 +76,8 @@ export function deleteBoard(document: AppDocument, boardId: BoardId): AppDocumen
     advisors,
     students,
     previousAdvisingRelationships: relationships,
+    assignments,
+    pairingSessions,
     semesters: {
       ...document.semesters,
       [semester.id]: { ...semester, boardIds: semester.boardIds.filter((id) => id !== boardId) },

@@ -6,6 +6,8 @@ import type {
   PreviousAdvisingRelationship,
   PreviousAdvisingRelationshipId,
 } from './previous-advising-relationship'
+import type { AdvisingAssignment, AdvisingAssignmentId } from './advising-assignment'
+import type { PairingSession } from './pairing-session'
 
 export type AppDocument = {
   schemaVersion: 1
@@ -14,8 +16,8 @@ export type AppDocument = {
   students: Record<StudentId, Student>
   advisors: Record<AdvisorId, Advisor>
   previousAdvisingRelationships: Record<PreviousAdvisingRelationshipId, PreviousAdvisingRelationship>
-  assignments: Record<string, unknown>
-  pairingSessions: Record<string, unknown>
+  assignments: Record<AdvisingAssignmentId, AdvisingAssignment>
+  pairingSessions: Record<BoardId, PairingSession>
 }
 
 export function createEmptyDocument(): AppDocument {

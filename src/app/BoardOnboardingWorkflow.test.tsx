@@ -59,6 +59,6 @@ describe('board onboarding', () => {
     expect(await screen.findByText(/1 student · 1 advisor slot · Ready/)).toBeInTheDocument()
     expect(proceed).toBeEnabled()
     await user.click(proceed)
-    expect(await screen.findByRole('heading', { level: 2, name: 'Pairing' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 2, name: 'Avery Stone' })).toBeInTheDocument()
   })
 })

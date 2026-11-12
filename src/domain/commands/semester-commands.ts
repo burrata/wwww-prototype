@@ -58,9 +58,15 @@ export function deleteSemester(document: AppDocument, semesterId: SemesterId): A
   const advisors = { ...document.advisors }
   const students = { ...document.students }
   const relationships = { ...document.previousAdvisingRelationships }
+  const assignments = { ...document.assignments }
+  const pairingSessions = { ...document.pairingSessions }
   delete semesters[semesterId]
   for (const boardId of semester.boardIds) {
     const board = boards[boardId]
+    delete pairingSessions[boardId]
+    for (const [assignmentId, assignment] of Object.entries(assignments)) {
+      if (assignment.boardId === boardId) delete assignments[assignmentId]
+    }
     if (board) for (const advisorId of board.advisorIds) delete advisors[advisorId]
     if (board) for (const studentId of board.studentIds) {
       const student = students[studentId]
@@ -69,5 +75,14 @@ export function deleteSemester(document: AppDocument, semesterId: SemesterId): A
     }
     delete boards[boardId]
   }
-  return { ...document, semesters, boards, advisors, students, previousAdvisingRelationships: relationships }
+  return {
+    ...document,
+    semesters,
+    boards,
+    advisors,
+    students,
+    previousAdvisingRelationships: relationships,
+    assignments,
+    pairingSessions,
+  }
 }

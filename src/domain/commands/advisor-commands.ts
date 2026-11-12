@@ -1,6 +1,7 @@
 import type { Advisor, AdvisorId } from '../advisor'
 import type { AppDocument } from '../app-document'
 import { DomainError } from '../domain-error'
+import { requireEditableRoster } from './roster-guard'
 
 export type AdvisorInput = {
   givenName: string
@@ -33,6 +34,7 @@ export function createAdvisor(
   if (!input.id) throw new DomainError('An ID is required.')
   const board = document.boards[input.boardId]
   if (!board) throw new DomainError('Board not found.')
+  requireEditableRoster(document, board.id)
   if (document.advisors[input.id]) throw new DomainError('That advisor ID is already in use.')
   const advisor: Advisor = {
     id: input.id,
@@ -56,6 +58,7 @@ export function updateAdvisor(
   input: AdvisorInput,
 ): AppDocument {
   const advisor = requireAdvisor(document, advisorId)
+  requireEditableRoster(document, advisor.boardId)
   return {
     ...document,
     advisors: {
@@ -69,6 +72,7 @@ export function deleteAdvisor(document: AppDocument, advisorId: AdvisorId): AppD
   const advisor = requireAdvisor(document, advisorId)
   const board = document.boards[advisor.boardId]
   if (!board) throw new DomainError('Board not found.')
+  requireEditableRoster(document, board.id)
   const advisors = { ...document.advisors }
   const students = { ...document.students }
   const relationships = { ...document.previousAdvisingRelationships }

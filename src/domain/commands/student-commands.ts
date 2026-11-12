@@ -4,6 +4,7 @@ import { findAdvisorsByName, normalizePersonName } from '../name-matching'
 import type { PreviousAdvisingRelationship } from '../previous-advising-relationship'
 import type { ProgramStage, Student, StudentId } from '../student'
 import { PROGRAM_STAGES } from '../taxonomy'
+import { requireEditableRoster } from './roster-guard'
 
 export type PreviousAdvisorInput = {
   id: string
@@ -93,6 +94,7 @@ export function createStudent(
   if (document.students[input.id]) throw new DomainError('That student ID is already in use.')
   const board = document.boards[input.boardId]
   if (!board) throw new DomainError('Board not found.')
+  requireEditableRoster(document, board.id)
   const prepared = prepareStudentData(document, board.id, input.id, input)
   const relationships = Object.fromEntries(prepared.relationships.map((item) => [item.id, item]))
   const student: Student = {
@@ -122,6 +124,7 @@ export function updateStudent(
   input: StudentInput,
 ): AppDocument {
   const student = requireStudent(document, studentId)
+  requireEditableRoster(document, student.boardId)
   const documentWithoutOwnedRelationships: AppDocument = {
     ...document,
     previousAdvisingRelationships: Object.fromEntries(
@@ -154,6 +157,7 @@ export function deleteStudent(document: AppDocument, studentId: StudentId): AppD
   const student = requireStudent(document, studentId)
   const board = document.boards[student.boardId]
   if (!board) throw new DomainError('Board not found.')
+  requireEditableRoster(document, board.id)
   const students = { ...document.students }
   const relationships = { ...document.previousAdvisingRelationships }
   delete students[studentId]

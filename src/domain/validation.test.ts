@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import type { AppDocument } from './app-document'
 import { parseAppDocument } from './validation/app-document-validator'
-import { documentWithAdvisor, documentWithBoard, documentWithSemester, documentWithStudent } from '../test/fixtures'
+import {
+  documentReadyForPairing,
+  documentWithAdvisor,
+  documentWithBoard,
+  documentWithSemester,
+  documentWithStudent,
+} from '../test/fixtures'
+import { confirmSoleRequest, setAdvisorRequest, startBoardPairing } from './commands/pairing-commands'
 
 function changed(change: (document: AppDocument) => void): AppDocument {
   const document = structuredClone(documentWithBoard())
@@ -21,12 +28,29 @@ function changedStudent(change: (document: AppDocument) => void): AppDocument {
   return document
 }
 
+function pairedDocument(): AppDocument {
+  const started = startBoardPairing(documentReadyForPairing(), 'board-1')
+  const requested = setAdvisorRequest(started, {
+    boardId: 'board-1', studentId: 'student-2', advisorId: 'advisor-1', requested: true, requestedAt: 'now',
+  })
+  return confirmSoleRequest(requested, {
+    id: 'assignment-1', boardId: 'board-1', studentId: 'student-2', advisorId: 'advisor-1', assignedAt: 'now',
+  })
+}
+
+function changedPairing(change: (document: AppDocument) => void): AppDocument {
+  const document = structuredClone(pairedDocument())
+  change(document)
+  return document
+}
+
 describe('application document validation', () => {
   it('accepts valid empty and populated documents', () => {
     expect(parseAppDocument(documentWithSemester())).toEqual(documentWithSemester())
     expect(parseAppDocument(documentWithBoard())).toEqual(documentWithBoard())
     expect(parseAppDocument(documentWithAdvisor())).toEqual(documentWithAdvisor())
     expect(parseAppDocument(documentWithStudent())).toEqual(documentWithStudent())
+    expect(parseAppDocument(pairedDocument())).toEqual(pairedDocument())
   })
 
   it.each([
@@ -53,6 +77,21 @@ describe('application document validation', () => {
     ['missing referenced board', changed((document) => { delete document.boards['board-1'] })],
     ['wrong board owner', changed((document) => { document.boards['board-1']!.semesterId = 'other' })],
     ['orphan board', changed((document) => { document.semesters['semester-1']!.boardIds = [] })],
+  ])('rejects %s', (_name, value) => {
+    expect(parseAppDocument(value)).toBeNull()
+  })
+
+  it.each([
+    ['bad assignment', changedPairing((document) => { (document.assignments as unknown as Record<string, unknown>)['assignment-1'] = null })],
+    ['mismatched assignment ID', changedPairing((document) => { document.assignments['assignment-1']!.id = 'other' })],
+    ['missing assignment advisor', changedPairing((document) => { document.assignments['assignment-1']!.advisorId = 'missing' })],
+    ['bad session', changedPairing((document) => { (document.pairingSessions as unknown as Record<string, unknown>)['board-1'] = null })],
+    ['wrong session board', changedPairing((document) => { document.pairingSessions['board-1']!.boardId = 'other' })],
+    ['missing ordered student', changedPairing((document) => { document.pairingSessions['board-1']!.orderedStudentIds = ['student-1'] })],
+    ['cursor past order', changedPairing((document) => { document.pairingSessions['board-1']!.cursor = 3 })],
+    ['request from missing advisor', changedPairing((document) => {
+      document.pairingSessions['board-1']!.requestsByStudentId['student-2'] = [{ advisorId: 'missing', requestedAt: 'now' }]
+    })],
   ])('rejects %s', (_name, value) => {
     expect(parseAppDocument(value)).toBeNull()
   })

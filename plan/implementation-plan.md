@@ -133,7 +133,8 @@ Depends on: Milestone 1
 
 ## Milestone 3 — enter students, preferences, and history
 
-Status: In progress — implementation and automated acceptance complete; awaiting manual checkpoint
+Status: Done
+Completed: 2026-11-12
 Size: L  
 Depends on: Milestone 2
 
@@ -185,7 +186,7 @@ Depends on: Milestone 2
 
 ## Milestone 4 — run the first pairing pass
 
-Status: Not started  
+Status: In progress — implementation and automated acceptance complete; awaiting manual checkpoint
 Size: L  
 Depends on: Milestone 3
 
@@ -193,8 +194,8 @@ Depends on: Milestone 3
 
 - **M4.1** Add PairingSession, AdvisorRequest, and AdvisingAssignment entities,
   pure commands, invariants, and selectors.
-- **M4.2** Start pairing in entry or family-name order and persist the materialized
-  student order.
+- **M4.2** Start pairing immediately in family-name order and persist the
+  materialized student order.
 - **M4.3** Build the student presenter with stage, preferences, history, progress,
   eligible advisors, remaining capacity, and visible exclusion reasons.
 - **M4.4** Toggle advisor requests separately from assignment.
@@ -213,7 +214,8 @@ Depends on: Milestone 3
 
 ### Manual checkpoint
 
-1. Start one board in entry order and another in family-name order.
+1. Start pairing and confirm students appear alphabetically by last name without
+   an order-selection screen.
 2. Add one request and verify nothing is assigned until confirmation.
 3. Defer a sole request, multiple requests, and no request.
 4. Confirm several pairings until an advisor becomes full.
@@ -223,7 +225,7 @@ Depends on: Milestone 3
 
 ## Milestone 5 — resolve, undo, reset, and reopen
 
-Status: Not started  
+Status: In progress — direct resolution and repeated unpaired passes implemented
 Size: L  
 Depends on: Milestone 4
 
@@ -233,6 +235,8 @@ Depends on: Milestone 4
   afterward.
 - **M5.2** Allow explicit confirmation of any eligible advisor, including a
   non-requester; never allow a previous advisor or capacity override.
+- **M5.2a** Allow selecting any unpaired student after a pass or starting another
+  alphabetical pass containing only unpaired students; preserve request history.
 - **M5.3** Implement persisted multi-step undo for requests, deferrals/advances,
   assignments, and board reopening. Cap each board at 50 actions.
 - **M5.4** Add deliberate revisit, roster-preserving board reset, and completed
