@@ -55,28 +55,32 @@ No UI component reads from or writes to `localStorage` directly. The store loads
 through the adapter once, persists validated state after successful transitions,
 and exposes a save status. Domain functions remain browser- and React-independent.
 
-## Proposed repository structure
+## Repository structure
 
 ```text
 src/
-  app/                 app shell, routes/views, providers
-  domain/              entities, commands, selectors, invariants
+  app/
+    components/        reusable forms, lists, layout, confirmations
+    pages/             route-level containers
+    App.tsx            thin page selection and composition
+    routing.ts         hash route adapter
+    use-document-store.ts
+  domain/
+    commands/          one command set per aggregate
+    selectors/         one selector set per entity
+    validation/        field validators plus document validator
+    *.ts               one model/entity per file
   storage/             schema, migrations, local adapter, import/export
-  features/
-    semesters/
-    boards/
-    pairing/
-    results/
-    settings/
-  components/          shared accessible UI primitives
   styles/              tokens and global styles
   test/                fixtures and test utilities
 plan/
 .github/workflows/
 ```
 
-Feature folders may contain components and feature-specific hooks. Domain and
-storage layers must not import from React or feature folders.
+Page containers may compose components and domain operations. Domain and storage
+layers must not import from React or app folders. Keep `App.tsx` limited to
+provider-independent orchestration and page selection. Use Mantine components
+for accessible controls, layout, feedback, and dialogs; keep custom CSS minimal.
 
 The setup UI is a guided sequence rather than one large form: create/open a
 semester, create its genre board, add advisors and capacities, then add students.
@@ -457,8 +461,6 @@ copy fallback. Other modern browsers may work but are not an acceptance target.
 
 1. Should the app register a service worker for offline repeat visits? This adds
    cache-update complexity and is not proposed for the first slice.
-2. Is Zod acceptable as a runtime dependency, or is a hand-written validator
-   preferred to minimize dependencies?
 
 ## Delivery plan
 
@@ -484,9 +486,9 @@ task status and acceptance details.
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
 | 2026-11-12 | Use a static, browser-only architecture for the prototype. | Accepted | Required by the product constraint and compatible with GitHub Pages. |
-| 2026-11-12 | Use React 19.3 + TypeScript + Vite 8 stable line. | Proposed | Current stable React and Vite provide a small static build with familiar tooling. |
-| 2026-11-12 | Put pairing logic in pure domain functions. | Proposed | Protects invariants and makes the highest-risk behavior easy to test. |
-| 2026-11-12 | Use a versioned localStorage document behind an adapter. | Proposed | Meets resumability and easy-erasure needs at the expected scale without a backend. |
+| 2026-11-12 | Use React 19.3 + TypeScript + Vite 8 stable line. | Accepted | Current stable React and Vite provide a small static build with familiar tooling. |
+| 2026-11-12 | Put pairing logic in pure domain functions. | Accepted | Protects invariants and makes the highest-risk behavior easy to test. |
+| 2026-11-12 | Use a versioned localStorage document behind an adapter. | Accepted | Meets resumability and easy-erasure needs at the expected scale without a backend. |
 | 2026-11-12 | Treat fullness and final advisor links as derived data. | Proposed | Avoids inconsistent duplicated state. |
 | 2026-11-12 | Preserve request history while deriving current eligibility. | Proposed | Reversible, explainable behavior matches the product workflow. |
 | 2026-11-12 | Scope each advisor record and its capacity to one board. | Accepted | Boards are genre cohorts and advisors are not shared between them. |
@@ -506,6 +508,9 @@ task status and acceptance details.
 | 2026-11-12 | Use Vitest with Node and jsdom projects, Testing Library, user-event, and V8 coverage. | Accepted | Aligns with Vite while keeping domain tests fast and UI tests user-centered. |
 | 2026-11-12 | Use `burrata/wwww-prototype`, `main`, and `/wwww-prototype/` as the Pages repository/base. | Accepted | Confirmed by the configured Git remote; the workflow builds explicitly for the project subpath. |
 | 2026-11-12 | Use TypeScript 6 and jsdom 29 with the current Node 24.14 runtime. | Accepted | Keeps the lint/test peer dependency tree compatible and audit-clean without requiring a machine update. |
+| 2026-11-12 | Use a hand-written schema-version-1 document validator. | Accepted | The current schema is small enough to validate without adding a runtime dependency; tests cover malformed fields and broken references. |
+| 2026-11-12 | Use hash-based navigation without a routing dependency. | Accepted | Hash URLs survive GitHub Pages refreshes and cover the prototype's small view hierarchy. |
+| 2026-11-12 | Use Mantine 9 for UI primitives and keep containers/components modular. | Accepted | Mantine supports React 19 and Vite, supplies accessible controls and dialogs, and avoids maintaining a bespoke component layer; entity-focused modules keep behavior independently testable. |
 
 ## Reference links
 

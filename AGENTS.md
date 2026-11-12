@@ -24,12 +24,11 @@ explicitly changes that constraint.
 
 The repository is in active implementation. Current and planned locations are:
 
-- `src/app/`: application shell and app-level views
+- `src/app/`: thin app orchestration, providers, routing, pages, and reusable UI components
 - `src/styles/`: global design tokens and shared styles
-- `src/test/`: shared test setup, render helpers, and future fixtures
+- `src/test/`: shared test setup, render helpers, and fixtures
 - `src/domain/`: framework-independent types, invariants, and pairing rules
 - `src/storage/`: local persistence, schema migration, import/export, and reset
-- `src/features/`: feature-oriented React UI
 - `plan/`: living product and architecture decisions
 - `.github/workflows/`: CI and GitHub Pages deployment
 
@@ -83,6 +82,12 @@ directories solely to match it.
   for it. Use concise functional labels and honest empty states.
 - Keep dependencies minimal and justify new runtime dependencies in
   `plan/architecture.md`.
+- Keep each domain entity in its own file. Group commands, selectors, and
+  validators by entity or aggregate rather than rebuilding catch-all modules.
+- Keep page containers, forms, lists, and reusable controls in separate files;
+  `App.tsx` should only select and compose the current page.
+- Prefer Mantine primitives over hand-built controls and layout CSS. Add custom
+  CSS only for application-specific behavior Mantine does not express clearly.
 - Use Vitest for automated tests. Run domain logic in a Node environment and
   React behavior in jsdom with Testing Library and `user-event`.
 - Prefer explicit behavior assertions and accessible queries. Do not add broad

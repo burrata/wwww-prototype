@@ -67,7 +67,7 @@ Depends on: none
 
 ## Milestone 1 — create semesters and boards
 
-Status: Not started  
+Status: In progress — implementation and automated acceptance complete; awaiting manual checkpoint
 Size: M  
 Depends on: Milestone 0
 
