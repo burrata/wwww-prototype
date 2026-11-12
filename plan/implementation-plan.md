@@ -6,7 +6,7 @@ Last updated: 2026-11-12
 ## Prototype outcome
 
 One facilitator can create a semester and genre boards, manually enter advisors
-and students, conduct the synchronous pairing workflow, resolve remaining
+and students, conduct the synchronous matching workflow, resolve remaining
 students, undo mistakes, resume after refresh, and produce print/PDF, CSV, and
 copied-table results. All participant data stays in the browser and can be
 exported, reset, or cleared.
@@ -151,9 +151,9 @@ Depends on: Milestone 2
 - **M3.5** Build keyboard-first student entry, roster edit/remove, and visible
   stage/preferences/history.
 - **M3.6** Show total capacity versus student count without blocking roster
-  edits, but prevent pairing while the counts differ.
+  edits, but prevent matching while the counts differ.
 - **M3.7** Guide each board through separate Advisors, Students, and Review
-  routes. Allow roster editing from Review and gate Pairing until total advisor
+  routes. Allow roster editing from Review and gate Matching until total advisor
   capacity exactly equals the nonzero student count.
 - **M3.8** Keep advisor count and total capacity visible above student entry and
   use concise, consistent labels and setup messages.
@@ -165,7 +165,7 @@ Depends on: Milestone 2
 - Name matching handles case/whitespace and never guesses between duplicates.
 - UI tests cover full keyboard entry and relationship states.
 - UI tests cover isolated advisor/student steps, Review editing, exact-capacity
-  gating, and the transition to Pairing.
+  gating, and the transition to Matching.
 
 ### Manual checkpoint
 
@@ -173,18 +173,18 @@ Depends on: Milestone 2
 2. Add requested advisors and confirm active advisors use an outlined indicator
    with a background and an info icon.
 3. Add a previous advisor who is on the board and confirm the same active style;
-   hover the info icon and confirm it says “Excluded from pairing.”
+   hover the info icon and confirm it says “Excluded from matching.”
 4. Enter previous advisors on separate lines and separated by commas. Confirm an
    absent advisor uses an outline-only indicator whose hover text says “Not active.”
 5. Create duplicate advisor names and confirm the app asks which one is meant.
 6. Confirm new boards move through Advisors → Students → Review with only the
    relevant entry form on each setup screen.
 7. Test both too little and too much advisor capacity. Confirm Review shows an
-   error and disables Pairing until total slots exactly equal student count.
+   error and disables Matching until total slots exactly equal student count.
 8. Edit either roster from Review, refresh, and confirm the roster and current
    route persist.
 
-## Milestone 4 — run the first pairing pass
+## Milestone 4 — run the first matching pass
 
 Status: In progress — implementation and automated acceptance complete; awaiting manual checkpoint
 Size: L  
@@ -194,7 +194,7 @@ Depends on: Milestone 3
 
 - **M4.1** Add PairingSession, AdvisorRequest, and AdvisingAssignment entities,
   pure commands, invariants, and selectors.
-- **M4.2** Start pairing immediately in family-name order and persist the
+- **M4.2** Start matching immediately in family-name order and persist the
   materialized student order.
 - **M4.3** Build the student presenter with stage, preferences, history, progress,
   eligible advisors, remaining capacity, and visible exclusion reasons.
@@ -214,18 +214,18 @@ Depends on: Milestone 3
 
 ### Manual checkpoint
 
-1. Start pairing and confirm students appear alphabetically by last name without
+1. Start matching and confirm students appear alphabetically by last name without
    an order-selection screen.
 2. Add one request and verify nothing is assigned until confirmation.
 3. Defer a sole request, multiple requests, and no request.
-4. Confirm several pairings until an advisor becomes full.
+4. Confirm several matches until an advisor becomes full.
 5. Confirm that advisor disappears from available choices and is removed from
    other students' request lists.
 6. Refresh midway and continue at the same student.
 
 ## Milestone 5 — resolve, undo, reset, and reopen
 
-Status: In progress — resolution, repeated unpaired passes, and pairing-action undo implemented
+Status: In progress — implementation and automated acceptance complete; awaiting manual checkpoint
 Size: L  
 Depends on: Milestone 4
 
@@ -235,13 +235,14 @@ Depends on: Milestone 4
   afterward.
 - **M5.2** Allow explicit confirmation of any eligible advisor, including a
   non-requester; never allow a previous advisor or capacity override.
-- **M5.2a** Allow selecting any unpaired student after a pass or starting another
-  alphabetical pass containing only unpaired students; preserve request history.
+- **M5.2a** Allow selecting any unmatched student after a pass or starting another
+  alphabetical pass containing only unmatched students; preserve request history.
 - **M5.3** Implement persisted multi-step undo for requests, deferrals/advances,
-  assignments, and repeated-pass starts. Cap each board at 50 actions. Board
-  reopening follows with M5.4.
-- **M5.4** Add deliberate revisit, roster-preserving board reset, and completed
-  board reopen controls with scoped warnings.
+  assignments, repeated-pass starts, and targeted student unassignment. Cap
+  each board at 50 actions.
+- **M5.4** Add explicit board completion, deliberate revisit,
+  roster-preserving board reset, and completed-board reopen controls with scoped
+  warnings.
 - **M5.5** Keep insufficient-capacity boards visibly incomplete until setup
   changes produce valid capacity.
 
@@ -251,7 +252,7 @@ Depends on: Milestone 4
   capacity-derived eligibility; the 51st action evicts only the oldest.
 - Resolution may choose an eligible non-requester but rejects all ineligible
   advisors.
-- Reset clears pairing state/history and preserves the roster.
+- Reset clears matching state/history and preserves the roster.
 
 ### Manual checkpoint
 
@@ -355,5 +356,5 @@ Size: M
 
 ## Recommended next implementation batch
 
-Begin Milestone 1: deliver persisted semester and board creation through the real
-browser workflow, then stop for its automated and manual checkpoint.
+Complete the Milestone 5 manual checkpoint, then begin Milestone 6 with the
+complete/incomplete results view before adding its export actions.

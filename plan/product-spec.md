@@ -5,11 +5,11 @@ Last updated: 2026-11-12
 
 ## Product intent
 
-Help an academic program run a live, transparent advising-pairing session with
+Help an academic program run a live, transparent advising-matching session with
 less bookkeeping and fewer capacity errors. One facilitator should be able to
 create a term, prepare one or more genre boards, record advisor interest as each
 student is considered, resolve contested students later, and publish a final
-pairing list.
+matching list.
 
 The first release is a local, single-browser prototype operated by one
 facilitator during a synchronous meeting with advisors. It is not a student or
@@ -29,7 +29,7 @@ advisor portal and does not synchronize participants' devices.
   board. Default 3; minimum 1. Advisors are not shared between boards.
 - **Request:** an advisor's expression of interest in advising a student during
   the live session.
-- **Assignment:** the final pairing of one student with one advisor.
+- **Assignment:** the final match of one student with one advisor.
 
 ## Users and operating model
 
@@ -51,7 +51,7 @@ assignments. Multi-user participation is not prototype scope.
 
 1. Create a semester by selecting Spring or Fall and entering a year.
 2. Open an existing semester or delete it after confirmation.
-3. View each board's student and advisor counts. After pairing starts, an
+3. View each board's student and advisor counts. After matching starts, an
    incomplete board also shows resolved and unresolved student counts.
 
 ### 2. Board setup
@@ -68,9 +68,9 @@ assignments. Multi-user participation is not prototype scope.
 5. Continue to Review, which displays both rosters and allows either roster to
    be edited.
 6. Review shows an error whenever total advisor capacity does not exactly equal
-   the student count, whether capacity is too low or too high. Pairing cannot
+   the student count, whether capacity is too low or too high. Matching cannot
    begin until the counts match and at least one student exists.
-7. When Review passes, continue to the separate pairing screen. Later edits that
+7. When Review passes, continue to the separate matching screen. Later edits that
    invalidate requests or assignments require an explicit warning.
 
 ### Keyboard-first roster entry
@@ -84,12 +84,12 @@ assignments. Multi-user participation is not prototype scope.
   previous-advisor history, and the add/save action.
 - After adding a person, return focus to the first field for the next entry while
   preserving the facilitator's place in the roster.
-- Last-name pairing order uses the explicit family-name field and falls back to
+- Last-name matching order uses the explicit family-name field and falls back to
   entry order when family names are identical.
 
-### 3. Live pairing: first pass
+### 3. Live matching: first pass
 
-1. Starting pairing orders students alphabetically by last name. The materialized
+1. Starting matching orders students alphabetically by last name. The materialized
    order stays fixed unless the board is reset; equal last names retain entry order.
 2. Present one unassigned student prominently, with program stage, previous
    advisors, student-requested advisors, and progress.
@@ -98,7 +98,7 @@ assignments. Multi-user participation is not prototype scope.
 4. The facilitator toggles advisor requests for the current student. A request
    never creates an assignment by itself.
 5. If exactly one eligible advisor has requested the student, show a separate
-   **Confirm pairing** action for that advisor. The facilitator may confirm it or
+   **Confirm match** action for that advisor. The facilitator may confirm it or
    defer the student.
 6. If more than one advisor requests the student, defer the student to conflict
    resolution and preserve the complete request list.
@@ -109,7 +109,7 @@ assignments. Multi-user participation is not prototype scope.
    Confirming a student removes every other requester from that student's list.
 10. Advance until every student has been considered once.
 
-The facilitator can step backward through the latest 50 reversible pairing
+The facilitator can step backward through the latest 50 reversible matching
 actions for that board and can deliberately revisit a previously considered
 student. Undo history is saved locally with the board and survives refreshes and
 browser restarts.
@@ -124,11 +124,11 @@ browser restarts.
 2. Allow the facilitator to select and confirm any eligible advisor from the
    board, including one who did not request the student.
 3. Recalculate capacity and eligibility after every assignment. Reject a
-   pairing that would make it impossible to assign every remaining student
+   match that would make it impossible to assign every remaining student
    within capacity and previous-advisor restrictions.
 4. Keep unresolved students visible if capacity makes completion impossible.
-5. From the post-pass list, allow the facilitator to open any unpaired student
-   directly or start another alphabetical pass through all unpaired students.
+5. From the post-pass list, allow the facilitator to open any unmatched student
+   directly or start another alphabetical pass through all unmatched students.
    Preserve remaining requests and assignments across passes.
 6. Allow the facilitator to undo a specific student's assignment from the
    post-pass list. Return that student to unresolved status, free the advisor's
@@ -137,15 +137,16 @@ browser restarts.
 
 ### 5. Results
 
-1. When every student is assigned, mark the board complete and show the final
-   student–advisor pairs.
+1. When every student is assigned, show a **Complete board** action. The board
+   becomes complete and locks assignment changes only after the facilitator
+   selects it; then show the final student–advisor matches.
 2. Allow sorting/grouping by student, advisor, program stage, or board.
 3. Provide all three facilitator-friendly outputs:
    - a print-optimized page that can be saved as PDF through the browser;
    - a downloadable CSV;
    - a tabular clipboard copy suitable for pasting into a document or sheet.
 4. A completed board can be reopened after a clear warning; subsequent changes
-   use the same pairing-action reversal model.
+   use the same matching-action reversal model.
 
 ## Product rules and invariants
 
@@ -160,7 +161,7 @@ browser restarts.
 - Capacity must be a positive integer and defaults to 3.
 - `is full` is derived from assignments and capacity, never edited directly.
 - An unavailable advisor cannot submit a new request.
-- Adding an advisor to a request list never assigns that advisor. Every pairing
+- Adding an advisor to a request list never assigns that advisor. Every match
   requires a separate, explicit confirmation by the facilitator.
 - Student-requested advisors are soft guidance and do not change eligibility.
 - A current-board advisor who previously advised a student is ineligible for
@@ -195,8 +196,10 @@ Prototype baseline:
 
 ## Local data controls
 
-- Reset the current board's pairing activity while preserving its roster.
+- Reset the current board's matching activity while preserving its roster.
   This also clears that board's undo history.
+- Keep a completed board locked until the facilitator confirms reopening it;
+  reopening preserves assignments and becomes an undoable action.
 - Delete one board.
 - Delete one semester and all of its boards.
 - Clear all locally stored app data.
@@ -210,7 +213,7 @@ Prototype baseline:
   remaining usable on tablet and desktop widths.
 - Display progress, capacity, conflicts, and saved state without relying on color
   alone.
-- All pairing controls are keyboard accessible, with visible focus and large
+- All matching controls are keyboard accessible, with visible focus and large
   click targets.
 - Announce assignment and validation changes to assistive technology.
 - Prevent accidental double submission and make undo continuously discoverable.
@@ -257,7 +260,7 @@ Prototype baseline:
 - Requested and previous advisors appear as rounded indicators with an info icon.
   Current-board advisors have an outline and background; advisors not active on
   the board have an outline only. Hover/focus identifies ineligible history as
-  “Excluded from pairing” and absent history as “Not active,” without adding
+  “Excluded from matching” and absent history as “Not active,” without adding
   separate status text to the roster.
 
 ## Open product questions
@@ -273,11 +276,11 @@ single-facilitator architecture.
 | Date | Decision | Status | Rationale |
 | --- | --- | --- | --- |
 | 2026-11-12 | Prototype is a facilitator-operated, local-first web app. | Accepted | One facilitator records a synchronous meeting; no participant devices or remote interaction are needed. |
-| 2026-11-12 | Remove a full advisor from other students' request lists and remove competing requests once a student is paired. | Accepted | Keeps the working list focused on advisors who can still be assigned and makes the confirmed pairing definitive. |
+| 2026-11-12 | Remove a full advisor from other students' request lists and remove competing requests once a student is matched. | Accepted | Keeps the working list focused on advisors who can still be assigned and makes the confirmed match definitive. |
 | 2026-11-12 | “Semester” and “program stage” are distinct terms. | Accepted | Removes a collision in the supplied data fields. |
 | 2026-11-12 | A board represents one genre cohort; advisors belong to only one board. | Accepted | Confirmed by the product owner; capacity and eligibility are therefore board-local. |
 | 2026-11-12 | Students belong to one board, and each semester has at most one board per genre. | Accepted | Confirmed by the product owner. |
-| 2026-11-12 | Advisor requests and assignments are separate; every assignment is explicitly confirmed. | Accepted | Prevents a request from silently becoming a final pairing. |
+| 2026-11-12 | Advisor requests and assignments are separate; every assignment is explicitly confirmed. | Accepted | Prevents a request from silently becoming a final match. |
 | 2026-11-12 | Preferences are soft guidance, while previous advising makes a current advisor ineligible. | Accepted | Confirmed matching policy; history is linked only when the advisor exists on the current board. |
 | 2026-11-12 | Conflict resolution may select any eligible advisor. | Accepted | The facilitator retains final assignment authority. |
 | 2026-11-12 | Capacity has no assignment override. | Accepted | A board remains incomplete until enough valid capacity exists. |
@@ -286,10 +289,11 @@ single-facilitator architecture.
 | 2026-11-12 | Results support print-to-PDF, CSV download, and copied table. | Accepted | All three outputs are required for the initial prototype. |
 | 2026-11-12 | Do not include sample data initially. | Accepted | Confirmed by the product owner. |
 | 2026-11-12 | Support the latest two stable desktop Chrome releases. | Accepted | Matches the meeting environment. |
-| 2026-11-12 | Persist up to 50 undoable pairing actions per board. | Accepted | Provides multi-step recovery across refreshes while keeping local history bounded. |
-| 2026-11-12 | Always pair students alphabetically by last name. | Accepted | Removes an unnecessary setup choice; entry order remains the stable tie-breaker for equal last names. |
+| 2026-11-12 | Persist up to 50 undoable matching actions per board. | Accepted | Provides multi-step recovery across refreshes while keeping local history bounded. |
+| 2026-11-12 | Always match students alphabetically by last name. | Accepted | Removes an unnecessary setup choice; entry order remains the stable tie-breaker for equal last names. |
 | 2026-11-12 | Store given and family names separately and optimize roster forms for Tab-key entry. | Accepted | Makes last-name ordering reliable and repeated manual entry efficient. |
 | 2026-11-12 | Defer CSV roster import but preserve a clean import boundary. | Accepted | Manual entry remains first scope; a strict-template importer can be added without changing the domain model. |
 | 2026-11-12 | Show requested and previous advisors as info-bearing rounded indicators; accept previous advisors by line or comma. | Accepted | Makes active, inactive, and excluded relationships visible without adding explanatory status text to every roster row. |
-| 2026-11-12 | Use a board onboarding flow of Advisors → Students → Review → Pairing and require exact capacity equality at Review. | Accepted | Keeps roster entry focused and prevents starting a session with either missing or excess advisor slots. |
+| 2026-11-12 | Use a board onboarding flow of Advisors → Students → Review → Matching and require exact capacity equality at Review. | Accepted | Keeps roster entry focused and prevents starting a session with either missing or excess advisor slots. |
+| 2026-11-12 | Use “matching,” “match,” and “matches” in facilitator-facing language. | Accepted | The terminology is clearer and more natural for the academic advising workflow. |
 | 2026-11-12 | Use “First name” and “Last name” as form labels and summarize advisor count/capacity above student entry. | Accepted | Uses familiar language and keeps the capacity constraint visible while entering students. |

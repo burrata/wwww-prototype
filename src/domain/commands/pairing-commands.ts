@@ -16,13 +16,13 @@ import { totalAdvisorCapacity } from '../selectors/advisor-selectors'
 
 function requireSession(document: AppDocument, boardId: string): PairingSession {
   const session = document.pairingSessions[boardId]
-  if (!session) throw new DomainError('Pairing session not found.')
+  if (!session) throw new DomainError('Matching session not found.')
   return session
 }
 
 function requireCurrentStudent(document: AppDocument, boardId: string, studentId: string): PairingSession {
   const session = requireSession(document, boardId)
-  if (session.status !== 'pairing') throw new DomainError('The first pairing pass is not active.')
+  if (session.status !== 'pairing') throw new DomainError('The first matching pass is not active.')
   if (currentPairingStudent(document, boardId)?.id !== studentId) {
     throw new DomainError('This student is not currently being considered.')
   }
@@ -42,20 +42,17 @@ function orderedStudentIds(document: AppDocument, boardId: string): string[] {
     .flatMap(({ student }) => student?.id ?? [])
 }
 
-function advanceSession(document: AppDocument, session: PairingSession, studentId: string): PairingSession {
+function advanceSession(session: PairingSession, studentId: string): PairingSession {
   const consideredStudentIds = session.consideredStudentIds.includes(studentId)
     ? session.consideredStudentIds
     : [...session.consideredStudentIds, studentId]
   const cursor = session.cursor + 1
   const atEnd = cursor >= session.orderedStudentIds.length
-  const boardAssignments = listAssignmentsForBoard(document, session.boardId)
-  const boardStudentCount = document.boards[session.boardId]?.studentIds.length ?? 0
-  const allAssigned = boardAssignments.length === boardStudentCount
   return {
     ...session,
     cursor,
     consideredStudentIds,
-    status: atEnd ? (allAssigned ? 'complete' : 'resolving') : 'pairing',
+    status: atEnd ? 'resolving' : 'pairing',
   }
 }
 
@@ -100,8 +97,8 @@ export function startBoardPairing(
 ): AppDocument {
   const board = document.boards[boardId]
   if (!board) throw new DomainError('Board not found.')
-  if (document.pairingSessions[boardId]) throw new DomainError('Pairing has already started.')
-  if (board.studentIds.length === 0) throw new DomainError('Add at least one student before pairing.')
+  if (document.pairingSessions[boardId]) throw new DomainError('Matching has already started.')
+  if (board.studentIds.length === 0) throw new DomainError('Add at least one student before matching.')
   const advisors = board.advisorIds.flatMap((id) => document.advisors[id] ?? [])
   if (totalAdvisorCapacity(advisors) !== board.studentIds.length) {
     throw new DomainError('Advisor capacity must match the student count.')
@@ -154,7 +151,7 @@ export function deferCurrentStudent(
   input: { boardId: string; studentId: string },
 ): AppDocument {
   const session = requireCurrentStudent(document, input.boardId, input.studentId)
-  const advanced = advanceSession(document, withUndoEntry(document, session, 'Defer student'), input.studentId)
+  const advanced = advanceSession(withUndoEntry(document, session, 'Defer student'), input.studentId)
   return { ...document, pairingSessions: { ...document.pairingSessions, [input.boardId]: advanced } }
 }
 
@@ -169,12 +166,12 @@ export function confirmSoleRequest(
   },
 ): AppDocument {
   const session = requireCurrentStudent(document, input.boardId, input.studentId)
-  if (!input.id || document.assignments[input.id]) throw new DomainError('Assignment ID must be unique.')
-  if (!input.assignedAt) throw new DomainError('Assignment time is required.')
-  if (assignmentForStudent(document, input.studentId)) throw new DomainError('This student is already assigned.')
+  if (!input.id || document.assignments[input.id]) throw new DomainError('Match ID must be unique.')
+  if (!input.assignedAt) throw new DomainError('Match time is required.')
+  if (assignmentForStudent(document, input.studentId)) throw new DomainError('This student is already matched.')
   const eligibleRequests = eligibleRequestsForStudent(document, session, input.studentId)
   if (eligibleRequests.length !== 1 || eligibleRequests[0]?.advisorId !== input.advisorId) {
-    throw new DomainError('Confirm pairing only when exactly one available advisor has requested the student.')
+    throw new DomainError('Confirm a match only when exactly one available advisor has requested the student.')
   }
   const advisor = document.advisors[input.advisorId]
   const student = document.students[input.studentId]
@@ -185,7 +182,7 @@ export function confirmSoleRequest(
     throw new DomainError('This advisor is not available for this student.')
   }
   if (!assignmentPreservesBoardFeasibility(document, student.id, advisor.id)) {
-    throw new DomainError('This pairing would leave another student without an eligible advisor.')
+    throw new DomainError('This match would leave another student without an eligible advisor.')
   }
   const assignment: AdvisingAssignment = {
     id: input.id,
@@ -202,10 +199,10 @@ export function confirmSoleRequest(
   }
   const cleanedSession = cleanRequestsAfterAssignment(
     withAssignment,
-    withUndoEntry(document, session, 'Confirm pairing'),
+    withUndoEntry(document, session, 'Confirm match'),
     assignment,
   )
-  const advanced = advanceSession(withAssignment, cleanedSession, input.studentId)
+  const advanced = advanceSession(cleanedSession, input.studentId)
   return {
     ...withAssignment,
     pairingSessions: { ...document.pairingSessions, [input.boardId]: advanced },
@@ -219,7 +216,7 @@ export function selectStudentForResolution(
   const session = requireResolvingSession(document, input.boardId)
   const board = document.boards[input.boardId]
   if (!board?.studentIds.includes(input.studentId)) throw new DomainError('Student not found on this board.')
-  if (assignmentForStudent(document, input.studentId)) throw new DomainError('This student is already assigned.')
+  if (assignmentForStudent(document, input.studentId)) throw new DomainError('This student is already matched.')
   return {
     ...document,
     pairingSessions: {
@@ -241,7 +238,7 @@ export function restartUnresolvedPass(document: AppDocument, boardId: string): A
   const unresolvedStudentIds = session.orderedStudentIds.filter(
     (studentId) => !assignmentForStudent(document, studentId),
   )
-  if (unresolvedStudentIds.length === 0) throw new DomainError('No unpaired students remain.')
+  if (unresolvedStudentIds.length === 0) throw new DomainError('No unmatched students remain.')
   const next: PairingSession = {
     ...withUndoEntry(document, session, 'Start another pass'),
     status: 'pairing',
@@ -259,9 +256,9 @@ export function confirmResolution(
 ): AppDocument {
   const session = requireResolvingSession(document, input.boardId)
   if (session.resolutionStudentId !== input.studentId) throw new DomainError('Select this student for resolution first.')
-  if (!input.id || document.assignments[input.id]) throw new DomainError('Assignment ID must be unique.')
-  if (!input.assignedAt) throw new DomainError('Assignment time is required.')
-  if (assignmentForStudent(document, input.studentId)) throw new DomainError('This student is already assigned.')
+  if (!input.id || document.assignments[input.id]) throw new DomainError('Match ID must be unique.')
+  if (!input.assignedAt) throw new DomainError('Match time is required.')
+  if (assignmentForStudent(document, input.studentId)) throw new DomainError('This student is already matched.')
   if (!isAdvisorAvailableForStudent(document, input.advisorId, input.studentId)) {
     throw new DomainError('This advisor is not available for this student.')
   }
@@ -271,7 +268,7 @@ export function confirmResolution(
     throw new DomainError('Student and advisor must belong to this board.')
   }
   if (!assignmentPreservesBoardFeasibility(document, student.id, advisor.id)) {
-    throw new DomainError('This pairing would leave another student without an eligible advisor.')
+    throw new DomainError('This match would leave another student without an eligible advisor.')
   }
   const assignment: AdvisingAssignment = {
     id: input.id,
@@ -284,21 +281,36 @@ export function confirmResolution(
   }
   const assignments = { ...document.assignments, [assignment.id]: assignment }
   const withAssignment = { ...document, assignments }
-  const boardStudentCount = document.boards[input.boardId]?.studentIds.length ?? 0
-  const boardAssignmentCount = Object.values(assignments).filter((item) => item.boardId === input.boardId).length
   const nextSession: PairingSession = {
     ...cleanRequestsAfterAssignment(
       withAssignment,
-      withUndoEntry(document, session, 'Confirm pairing'),
+      withUndoEntry(document, session, 'Confirm match'),
       assignment,
     ),
-    status: boardAssignmentCount === boardStudentCount ? 'complete' : 'resolving',
+    status: 'resolving',
   }
   delete nextSession.resolutionStudentId
   return {
     ...document,
     assignments,
     pairingSessions: { ...document.pairingSessions, [input.boardId]: nextSession },
+  }
+}
+
+export function completeBoardPairing(document: AppDocument, boardId: string): AppDocument {
+  const session = requireResolvingSession(document, boardId)
+  const board = document.boards[boardId]
+  if (!board) throw new DomainError('Board not found.')
+  const assignedStudentIds = new Set(listAssignmentsForBoard(document, boardId).map((assignment) => assignment.studentId))
+  if (board.studentIds.some((studentId) => !assignedStudentIds.has(studentId))) {
+    throw new DomainError('Match every student before completing the board.')
+  }
+  return {
+    ...document,
+    pairingSessions: {
+      ...document.pairingSessions,
+      [boardId]: { ...withUndoEntry(document, session, 'Complete board'), status: 'complete' },
+    },
   }
 }
 
@@ -325,17 +337,17 @@ export function unassignStudent(
   input: { boardId: string; studentId: string },
 ): AppDocument {
   const session = requireSession(document, input.boardId)
-  if (session.status === 'pairing') throw new DomainError('Finish the current pass before undoing an assignment.')
+  if (session.status === 'pairing') throw new DomainError('Finish the current pass before undoing a match.')
   const assignment = assignmentForStudent(document, input.studentId)
-  if (!assignment || assignment.boardId !== input.boardId) throw new DomainError('This student is not assigned.')
+  if (!assignment || assignment.boardId !== input.boardId) throw new DomainError('This student is not matched.')
 
   const assignmentEntry = [...session.undoStack].reverse().find((entry) => (
-    entry.label === 'Confirm pairing' && (
+    (entry.label === 'Confirm match' || entry.label === 'Confirm pairing') && (
       entry.session.resolutionStudentId === input.studentId ||
       entry.session.orderedStudentIds[entry.session.cursor] === input.studentId
     )
   ))
-  const sessionWithUndo = withUndoEntry(document, session, 'Undo assignment')
+  const sessionWithUndo = withUndoEntry(document, session, 'Undo match')
   let requestsByStudentId = sessionWithUndo.requestsByStudentId
   if (assignmentEntry) {
     requestsByStudentId = Object.fromEntries(
@@ -367,4 +379,28 @@ export function unassignStudent(
     assignments,
     pairingSessions: { ...document.pairingSessions, [input.boardId]: nextSession },
   }
+}
+
+export function reopenCompletedBoard(document: AppDocument, boardId: string): AppDocument {
+  const session = requireSession(document, boardId)
+  if (session.status !== 'complete') throw new DomainError('Only a completed board can be reopened.')
+  const nextSession: PairingSession = {
+    ...withUndoEntry(document, session, 'Reopen board'),
+    status: 'resolving',
+  }
+  return {
+    ...document,
+    pairingSessions: { ...document.pairingSessions, [boardId]: nextSession },
+  }
+}
+
+export function resetBoardPairing(document: AppDocument, boardId: string): AppDocument {
+  if (!document.boards[boardId]) throw new DomainError('Board not found.')
+  if (!document.pairingSessions[boardId]) throw new DomainError('Matching has not started.')
+  const assignments = Object.fromEntries(
+    Object.entries(document.assignments).filter(([, assignment]) => assignment.boardId !== boardId),
+  )
+  const pairingSessions = { ...document.pairingSessions }
+  delete pairingSessions[boardId]
+  return { ...document, assignments, pairingSessions }
 }

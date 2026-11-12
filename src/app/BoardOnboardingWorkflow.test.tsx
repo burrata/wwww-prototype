@@ -39,14 +39,14 @@ describe('board onboarding', () => {
     expect(screen.getByRole('region', { name: 'Advisor overview' })).toHaveTextContent('1 advisor · 3 slots')
   })
 
-  it('blocks pairing until total capacity exactly matches the student count', async () => {
+  it('blocks matching until total capacity exactly matches the student count', async () => {
     const user = userEvent.setup()
     openBoard(documentWithStudent(), 'review')
 
     expect(screen.getByRole('alert')).toHaveTextContent(
       '1 student · 3 advisor slots. Reduce capacity by 2 slots.',
     )
-    const proceed = screen.getByRole('button', { name: 'Proceed to pairing' })
+    const proceed = screen.getByRole('button', { name: 'Proceed to matching' })
     expect(proceed).toBeDisabled()
 
     await user.click(screen.getByRole('button', { name: 'Edit advisor Morgan Lee' }))

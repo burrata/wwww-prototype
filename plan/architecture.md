@@ -254,6 +254,7 @@ or a typed error:
 - `setAdvisorRequest(boardId, studentId, advisorId, requested)`
 - `deferStudent(studentId, reason)`
 - `confirmAssignment(studentId, advisorId, source)`
+- `completeBoardPairing(boardId)`
 - `undoLastPairingEvent(boardId)`
 - `reopenBoard(boardId)`
 - `resetBoardPairing(boardId)`
@@ -269,8 +270,8 @@ exclusion, session status, and whether a complete matching remains possible
 before changing state. Feasibility uses capacity-aware bipartite matching across
 all remaining students and advisor slots.
 
-Request changes, student deferrals/advances, confirmed assignments, and reopening
-a completed board are undoable pairing actions. Roster/setup edits and
+Request changes, student deferrals/advances, confirmed assignments, explicit
+board completion, and reopening a completed board are undoable pairing actions. Roster/setup edits and
 destructive reset/delete/clear operations are not part of this stack. Board reset
 clears the stack after its explicit confirmation.
 
@@ -533,6 +534,7 @@ task status and acceptance details.
 | 2026-11-12 | Use Mantine 9 for UI primitives and keep containers/components modular. | Accepted | Mantine supports React 19 and Vite, supplies accessible controls and dialogs, and avoids maintaining a bespoke component layer; entity-focused modules keep behavior independently testable. |
 | 2026-11-12 | Represent board onboarding as guarded hash subroutes rather than persisted step state. | Accepted | Refresh/back navigation remains stable while Review and Pairing eligibility are always derived from the current rosters. |
 | 2026-11-12 | Lock roster commands after a pairing session starts. | Accepted | Preserves fixed order and prevents roster or capacity changes from invalidating an active session; reset will reopen setup in Milestone 5. |
+| 2026-11-12 | Use matching terminology in the interface while retaining existing `pairing` domain/schema names. | Accepted | Improves facilitator-facing language without creating a storage migration or a behavior-only internal rename. |
 
 ## Reference links
 

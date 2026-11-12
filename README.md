@@ -1,6 +1,6 @@
-# Advising Pairing Prototype
+# Advising Matching Prototype
 
-A local-first React prototype for facilitating student–advisor pairing meetings.
+A local-first React prototype for facilitating student–advisor matching meetings.
 The product and architecture decisions live in `plan/`.
 
 ## Requirements

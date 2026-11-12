@@ -7,7 +7,7 @@ type AdvisorIndicatorProps = {
 }
 
 export function AdvisorIndicator({ name, active, excluded = false }: AdvisorIndicatorProps) {
-  const status = excluded ? 'Excluded from pairing' : active ? 'Active on this board' : 'Not active'
+  const status = excluded ? 'Excluded from matching' : active ? 'Active on this board' : 'Not active'
   return (
     <Tooltip label={status} withArrow>
       <Badge

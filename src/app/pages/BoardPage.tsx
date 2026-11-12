@@ -5,10 +5,13 @@ import { listAdvisorsForBoard, totalAdvisorCapacity } from '../../domain/selecto
 import { createStudent, deleteStudent, updateStudent, type StudentInput } from '../../domain/commands/student-commands'
 import {
   cancelStudentResolution,
+  completeBoardPairing,
   confirmResolution,
   confirmSoleRequest,
   deferCurrentStudent,
   restartUnresolvedPass,
+  reopenCompletedBoard,
+  resetBoardPairing,
   selectStudentForResolution,
   setAdvisorRequest,
   startBoardPairing,
@@ -25,6 +28,7 @@ import { BoardFeasibility } from '../components/BoardFeasibility'
 import { BoardSetupProgress } from '../components/BoardSetupProgress'
 import { AdvisorOverview } from '../components/AdvisorOverview'
 import { PairingPresenter } from '../components/PairingPresenter'
+import { ConfirmDeleteButton } from '../components/ConfirmDeleteButton'
 import { navigate, type BoardStep } from '../routing'
 import { NotFoundPage } from './NotFoundPage'
 
@@ -116,6 +120,17 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
   function undoStudentAssignment(studentId: string): boolean {
     return commit((current) => unassignStudent(current, { boardId, studentId }))
   }
+  function completePairing(): boolean {
+    return commit((current) => completeBoardPairing(current, boardId))
+  }
+  function reopenPairing(): void {
+    commit((current) => reopenCompletedBoard(current, boardId))
+  }
+  function resetPairing(): void {
+    if (commit((current) => resetBoardPairing(current, boardId))) {
+      navigate(`/boards/${boardId}/review`)
+    }
+  }
   const advisorList = (
     <AdvisorList
       advisors={advisors}
@@ -182,7 +197,7 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
               <Button component="a" href={`#/boards/${board.id}/students`} variant="default">Edit students</Button>
             </Group>
             <Button onClick={beginPairing} disabled={!capacityMatches}>
-              Proceed to pairing
+              Proceed to matching
             </Button>
           </Group>
         </Stack>
@@ -190,14 +205,38 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
 
       {step === 'pairing' && (pairingSession ? (
         <Stack gap="md">
-          <Group justify="flex-end">
-            <Button
-              variant="default"
-              disabled={pairingSession.undoStack.length === 0}
-              onClick={undoPairingAction}
-            >
-              Undo
-            </Button>
+          <Group justify="space-between">
+            <ConfirmDeleteButton
+              itemName={genreLabel(board.genre)}
+              itemType="matching"
+              triggerLabel="Reset matching"
+              confirmLabel="Reset matching"
+              title={`Reset ${genreLabel(board.genre)} matching?`}
+              description="This removes all requests, matches, matching progress, and undo history. Advisors and students remain on the board."
+              ariaLabel="Reset matching"
+              onConfirm={resetPairing}
+            />
+            <Group>
+              {pairingSession.status === 'complete' && (
+                <ConfirmDeleteButton
+                  itemName={genreLabel(board.genre)}
+                  itemType="board"
+                  triggerLabel="Reopen board"
+                  confirmLabel="Reopen board"
+                  title={`Reopen ${genreLabel(board.genre)} board?`}
+                  description="This makes the completed board editable again. Existing matches remain until you change them."
+                  ariaLabel="Reopen board"
+                  onConfirm={reopenPairing}
+                />
+              )}
+              <Button
+                variant="default"
+                disabled={pairingSession.undoStack.length === 0}
+                onClick={undoPairingAction}
+              >
+                Undo
+              </Button>
+            </Group>
           </Group>
           <PairingPresenter
             document={document}
@@ -210,12 +249,13 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
             onConfirmResolution={resolvePairing}
             onRestartPass={restartPass}
             onUnassign={undoStudentAssignment}
+            onComplete={completePairing}
           />
         </Stack>
       ) : (
         <Stack gap="md">
           <Alert color="red" title="Setup incomplete">
-            Start pairing from Review after advisor capacity matches the student count.
+            Start matching from Review after advisor capacity matches the student count.
           </Alert>
           <Group><Button component="a" href={`#/boards/${board.id}/review`}>Review board</Button></Group>
         </Stack>

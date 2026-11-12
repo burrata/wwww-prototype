@@ -52,8 +52,8 @@ describe('student setup', () => {
     await user.keyboard('{Enter}')
 
     expect(await screen.findByText('Avery Stone')).toBeInTheDocument()
-    expect(screen.getByLabelText('Morgan Lee: Excluded from pairing')).toBeInTheDocument()
-    expect(screen.getByLabelText('MORGAN lee: Excluded from pairing')).toBeInTheDocument()
+    expect(screen.getByLabelText('Morgan Lee: Excluded from matching')).toBeInTheDocument()
+    expect(screen.getByLabelText('MORGAN lee: Excluded from matching')).toBeInTheDocument()
     expect(screen.getByLabelText('Former Advisor: Not active')).toBeInTheDocument()
     expect(givenName).toHaveFocus()
     first.unmount()

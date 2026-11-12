@@ -14,7 +14,7 @@ export function BoardSetupProgress({ step }: { step: BoardStep }) {
       <Stepper.Step label="Advisors" />
       <Stepper.Step label="Students" />
       <Stepper.Step label="Review" />
-      <Stepper.Step label="Pairing" />
+      <Stepper.Step label="Matching" />
     </Stepper>
   )
 }

@@ -8,6 +8,7 @@ type ConfirmDeleteButtonProps = {
   triggerLabel?: string
   confirmLabel?: string
   title?: string
+  ariaLabel?: string
   onConfirm(): void
 }
 
@@ -18,6 +19,7 @@ export function ConfirmDeleteButton({
   triggerLabel = 'Delete',
   confirmLabel = `Delete ${itemType}`,
   title = `Delete ${itemType} “${itemName}”?`,
+  ariaLabel,
   onConfirm,
 }: ConfirmDeleteButtonProps) {
   const [opened, setOpened] = useState(false)
@@ -33,7 +35,7 @@ export function ConfirmDeleteButton({
         variant="subtle"
         color="red"
         size="compact-sm"
-        aria-label={[triggerLabel, itemType, itemName].filter(Boolean).join(' ')}
+        aria-label={ariaLabel ?? [triggerLabel, itemType, itemName].filter(Boolean).join(' ')}
         onClick={() => setOpened(true)}
       >
         {triggerLabel}

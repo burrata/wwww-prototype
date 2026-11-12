@@ -28,6 +28,7 @@ type PairingPresenterProps = {
   onConfirmResolution(studentId: string, advisorId: string): boolean
   onRestartPass(): boolean
   onUnassign(studentId: string): boolean
+  onComplete(): boolean
 }
 
 function fullName(person: { givenName: string; familyName: string }): string {
@@ -45,6 +46,7 @@ export function PairingPresenter({
   onConfirmResolution,
   onRestartPass,
   onUnassign,
+  onComplete,
 }: PairingPresenterProps) {
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
@@ -86,12 +88,20 @@ export function PairingPresenter({
     })
     return (
       <Stack gap="lg">
-        <Alert color={session.status === 'complete' ? 'green' : 'blue'} title={session.status === 'complete' ? 'Pairing complete' : 'First pass complete'}>
-          {assignedCount} assigned · {unresolvedCount} unresolved
+        <Alert
+          color={session.status === 'complete' ? 'green' : 'blue'}
+          title={session.status === 'complete' ? 'Matching complete' : unresolvedCount === 0 ? 'All students matched' : 'First pass complete'}
+        >
+          {assignedCount} matched · {unresolvedCount} unmatched
         </Alert>
-        {session.status === 'resolving' && (
+        {session.status === 'resolving' && unresolvedCount > 0 && (
           <Group justify="flex-end">
             <Button onClick={() => onRestartPass()}>Start another pass</Button>
+          </Group>
+        )}
+        {session.status === 'resolving' && unresolvedCount === 0 && (
+          <Group justify="flex-end">
+            <Button disabled={busy} onClick={() => run(onComplete)}>Complete board</Button>
           </Group>
         )}
         <Title order={3}>Request history</Title>
@@ -126,15 +136,15 @@ export function PairingPresenter({
                       </Stack>
                     )}
                   </div>
-                  {assignment ? (
+                  {assignment && session.status !== 'complete' ? (
                     <Button variant="default" size="sm" fullWidth onClick={() => onUnassign(item.id)}>
-                      Undo assignment
+                      Undo match
                     </Button>
-                  ) : (
+                  ) : !assignment ? (
                     <Button variant="default" size="sm" fullWidth onClick={() => onSelectResolution(item.id)}>
                       Resolve {fullName(item)}
                     </Button>
-                  )}
+                  ) : null}
                 </Stack>
               </Card>
             )
@@ -232,7 +242,7 @@ export function PairingPresenter({
         )}
       </Group>
       {soleRequester && !soleRequestPreservesFeasibility && (
-        <Text size="sm" c="red">This pairing would leave another student without an eligible advisor.</Text>
+        <Text size="sm" c="red">This match would leave another student without an eligible advisor.</Text>
       )}
     </Stack>
   )

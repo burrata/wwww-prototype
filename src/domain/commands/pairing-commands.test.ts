@@ -3,14 +3,18 @@ import { createAdvisor, updateAdvisor } from './advisor-commands'
 import { createStudent } from './student-commands'
 import {
   cancelStudentResolution,
+  completeBoardPairing,
   confirmResolution,
   confirmSoleRequest,
   restartUnresolvedPass,
+  reopenCompletedBoard,
+  resetBoardPairing,
   selectStudentForResolution,
   deferCurrentStudent,
   setAdvisorRequest,
   startBoardPairing,
   undoLastPairingAction,
+  unassignStudent,
 } from './pairing-commands'
 import { documentWithBoard } from '../../test/fixtures'
 import {
@@ -162,7 +166,7 @@ describe('pairing commands', () => {
     })).toThrow('time')
     expect(() => updateAdvisor(started, 'advisor-1', {
       givenName: 'Morgan', familyName: 'Lee', capacity: 2,
-    })).toThrow('Reset pairing')
+    })).toThrow('Reset matching')
   })
 
   it('selects any unresolved student and confirms any eligible advisor', () => {
@@ -194,6 +198,26 @@ describe('pairing commands', () => {
 
     expect(requestsForStudent(session, 'student-1').map((item) => item.advisorId)).toEqual(['advisor-1'])
     expect(requestsForStudent(session, 'student-2')).toEqual([])
+
+    const legacyResolved = structuredClone(resolved)
+    const legacyEntry = legacyResolved.pairingSessions['board-1']?.undoStack
+      .findLast((entry) => entry.label === 'Confirm match')
+    if (legacyEntry) legacyEntry.label = 'Confirm pairing'
+    const legacyUnassigned = unassignStudent(legacyResolved, { boardId: 'board-1', studentId: 'student-1' })
+    expect(requestsForStudent(legacyUnassigned.pairingSessions['board-1']!, 'student-2').map((item) => item.advisorId))
+      .toEqual(['advisor-1'])
+
+    const unassigned = unassignStudent(resolved, { boardId: 'board-1', studentId: 'student-1' })
+    expect(assignmentForStudent(unassigned, 'student-1')).toBeUndefined()
+    expect(unassigned.pairingSessions['board-1']?.status).toBe('resolving')
+    expect(requestsForStudent(unassigned.pairingSessions['board-1']!, 'student-1').map((item) => item.advisorId))
+      .toEqual(['advisor-1', 'advisor-2'])
+    expect(requestsForStudent(unassigned.pairingSessions['board-1']!, 'student-2').map((item) => item.advisorId))
+      .toEqual(['advisor-1'])
+
+    const restored = undoLastPairingAction(unassigned, 'board-1')
+    expect(assignmentForStudent(restored, 'student-1')?.advisorId).toBe('advisor-1')
+    expect(requestsForStudent(restored.pairingSessions['board-1']!, 'student-2')).toEqual([])
   })
 
   it('rejects an assignment that would strand a student with a previous advisor', () => {
@@ -212,6 +236,7 @@ describe('pairing commands', () => {
       studentRequestedAdvisorIds: [], previousAdvisors: [{ id: 'history-1', name: 'Morgan Lee' }],
     })
     const started = startBoardPairing(constrainedStudent, 'board-1')
+    expect(() => unassignStudent(started, { boardId: 'board-1', studentId: 'student-1' })).toThrow('Finish the current pass')
     expect(assignmentPreservesBoardFeasibility(started, 'missing', 'advisor-1')).toBe(false)
     expect(assignmentPreservesBoardFeasibility(started, 'student-1', 'missing')).toBe(false)
     expect(assignmentPreservesBoardFeasibility({ ...started, boards: {} }, 'student-1', 'advisor-1')).toBe(false)
@@ -246,6 +271,9 @@ describe('pairing commands', () => {
     const started = startBoardPairing(pairingDocument(), 'board-1')
     const afterFirst = deferCurrentStudent(started, { boardId: 'board-1', studentId: 'student-2' })
     const resolving = deferCurrentStudent(afterFirst, { boardId: 'board-1', studentId: 'student-1' })
+    expect(() => unassignStudent(resolving, {
+      boardId: 'board-1', studentId: 'student-1',
+    })).toThrow('This student is not matched')
     expect(() => selectStudentForResolution(resolving, {
       boardId: 'board-1', studentId: 'missing',
     })).toThrow('not found')
@@ -259,10 +287,38 @@ describe('pairing commands', () => {
       id: 'r1', boardId: 'board-1', studentId: 'student-2', advisorId: 'advisor-1', assignedAt: 'now',
     })
     const secondSelected = selectStudentForResolution(firstResolved, { boardId: 'board-1', studentId: 'student-1' })
-    const complete = confirmResolution(secondSelected, {
+    const fullyAssigned = confirmResolution(secondSelected, {
       id: 'r2', boardId: 'board-1', studentId: 'student-1', advisorId: 'advisor-2', assignedAt: 'later',
     })
+    expect(fullyAssigned.pairingSessions['board-1']?.status).toBe('resolving')
+    const complete = completeBoardPairing(fullyAssigned, 'board-1')
     expect(complete.pairingSessions['board-1']?.status).toBe('complete')
     expect(() => restartUnresolvedPass(complete, 'board-1')).toThrow('not active')
+
+    const reopened = reopenCompletedBoard(complete, 'board-1')
+    expect(reopened.pairingSessions['board-1']?.status).toBe('resolving')
+    expect(Object.keys(reopened.assignments)).toHaveLength(2)
+
+    const restored = undoLastPairingAction(reopened, 'board-1')
+    expect(restored.pairingSessions['board-1']?.status).toBe('complete')
+    expect(Object.keys(restored.assignments)).toHaveLength(2)
+
+    const reset = resetBoardPairing(reopenCompletedBoard(restored, 'board-1'), 'board-1')
+    expect(reset.pairingSessions['board-1']).toBeUndefined()
+    expect(reset.assignments).toEqual({})
+    expect(reset.boards['board-1']?.advisorIds).toHaveLength(2)
+    expect(reset.boards['board-1']?.studentIds).toHaveLength(2)
+  })
+
+  it('rejects reopening unfinished boards and resetting missing pairing state', () => {
+    const document = pairingDocument()
+    const started = startBoardPairing(document, 'board-1')
+
+    const afterFirst = deferCurrentStudent(started, { boardId: 'board-1', studentId: 'student-2' })
+    const resolving = deferCurrentStudent(afterFirst, { boardId: 'board-1', studentId: 'student-1' })
+    expect(() => completeBoardPairing(resolving, 'board-1')).toThrow('Match every student')
+    expect(() => reopenCompletedBoard(started, 'board-1')).toThrow('Only a completed board')
+    expect(() => resetBoardPairing(document, 'board-1')).toThrow('Matching has not started')
+    expect(() => resetBoardPairing(document, 'missing')).toThrow('Board not found')
   })
 })

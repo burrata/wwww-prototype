@@ -33,7 +33,7 @@ export function ResolutionPanel({ document, session, studentId, onCancel, onConf
   return (
     <Stack gap="lg">
       <div>
-        <Text size="sm" c="dimmed">Resolve pairing</Text>
+        <Text size="sm" c="dimmed">Resolve match</Text>
         <Text size="sm" c="dimmed">{programStageLabel(student.programStage)}</Text>
         <Title order={2}>{fullName(student)}</Title>
       </div>
@@ -70,7 +70,7 @@ export function ResolutionPanel({ document, session, studentId, onCancel, onConf
       </Radio.Group>
       <Group justify="space-between">
         <Button variant="default" onClick={() => onCancel()}>Back</Button>
-        <Button disabled={!advisorId} onClick={() => onConfirm(student.id, advisorId)}>Confirm pairing</Button>
+        <Button disabled={!advisorId} onClick={() => onConfirm(student.id, advisorId)}>Confirm match</Button>
       </Group>
     </Stack>
   )
