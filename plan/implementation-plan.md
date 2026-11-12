@@ -31,7 +31,8 @@ Status values are `Not started`, `In progress`, `Blocked`, and `Done`. Sizes
 
 ## Milestone 0 — runnable foundation
 
-Status: Not started  
+Status: Done
+Completed: 2026-11-12
 Size: M  
 Depends on: none
 
@@ -39,8 +40,8 @@ Depends on: none
 
 - **M0.1** Initialize Git with `main` if still needed and scaffold current stable
   React, TypeScript, and Vite.
-- **M0.2** Add an accessible app shell, neutral CSS tokens, and a home/empty-state
-  screen. Avoid premature visual polish.
+- **M0.2** Add an accessible, neutral app shell and honest empty semester state.
+  Do not add sample or promotional placeholder content.
 - **M0.3** Configure ESLint, strict TypeScript, Vitest 5, React Testing Library,
   user-event, jest-dom, jsdom, and V8 coverage.
 - **M0.4** Configure Vitest's Node `unit` project and jsdom `ui` project. Add
@@ -60,8 +61,8 @@ Depends on: none
 
 1. Run the documented install and development commands.
 2. Open the local URL in desktop Chrome.
-3. Confirm the shell loads, identifies the advising-pairing prototype, and shows
-   a clear first action rather than Vite starter content.
+3. Confirm the shell loads a neutral **Semesters** page with an honest empty
+   state rather than Vite starter or promotional placeholder content.
 4. Refresh and confirm there are no console-visible or on-screen errors.
 
 ## Milestone 1 — create semesters and boards
@@ -331,7 +332,7 @@ Size: M
   baseline
 - Runtime schema library choice, to be recorded during Milestone 1
 
-## Recommended first implementation batch
+## Recommended next implementation batch
 
-Begin with Milestone 0 only. Deliver its running shell and manual checkpoint
-before starting semester/board behavior in Milestone 1.
+Begin Milestone 1: deliver persisted semester and board creation through the real
+browser workflow, then stop for its automated and manual checkpoint.

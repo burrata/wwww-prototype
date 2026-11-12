@@ -16,20 +16,23 @@ Last updated: 2026-11-12
 
 | Area | Choice | Status |
 | --- | --- | --- |
-| Language | TypeScript, strict mode | Proposed |
-| UI | React 19.3 stable | Proposed |
-| Build | Vite 8 stable line; install the current stable patch when scaffolding | Proposed |
-| Styling | Plain CSS with design tokens and component-level styles | Proposed |
+| Language | TypeScript 6, strict mode | Accepted |
+| UI | React 19.3 stable | Accepted |
+| Build | Vite 8 stable line | Accepted |
+| Styling | Plain CSS with design tokens and component-level styles | Accepted |
 | State | React reducer + context, with domain commands | Proposed |
 | Persistence | Versioned JSON document in `localStorage` behind an adapter | Proposed |
 | Validation | Zod (or equivalent small schema validator) at storage/import boundaries | Proposed |
 | Tests | Vitest 5 stable line + React Testing Library + user-event; Playwright release smoke test | Accepted |
 | Deployment | GitHub Actions to GitHub Pages | Required |
 
-React's official version page listed 19.3 as latest stable on 2026-11-12.
-Vite's official site listed 8.3.7 and documents a GitHub Actions Pages workflow.
-Exact dependency versions belong in the lockfile and should not be duplicated
-here after scaffolding.
+React's official version page listed 19.3 as latest stable on 2026-11-12. The
+scaffold installed React 19.3.1, Vite 8.3.8, and Vitest 5.1.0; the lockfile is
+authoritative for exact versions. TypeScript is held to the supported 6.0 line
+rather than npm's TypeScript 7 latest because the current TypeScript ESLint
+release requires TypeScript below 6.1. jsdom is held to 29 because jsdom 30/31
+requires Node 24.15 or newer while the development machine uses Node 24.14.1.
+No Node upgrade is required for the selected toolchain.
 
 ## System shape
 
@@ -452,11 +455,9 @@ copy fallback. Other modern browsers may work but are not an acceptance target.
 
 ## Open architecture questions
 
-1. What is the final GitHub owner/repository URL, default branch, and public vs.
-   private Pages arrangement?
-2. Should the app register a service worker for offline repeat visits? This adds
+1. Should the app register a service worker for offline repeat visits? This adds
    cache-update complexity and is not proposed for the first slice.
-3. Is Zod acceptable as a runtime dependency, or is a hand-written validator
+2. Is Zod acceptable as a runtime dependency, or is a hand-written validator
    preferred to minimize dependencies?
 
 ## Delivery plan
@@ -503,6 +504,8 @@ task status and acceptance details.
 | 2026-11-12 | Store given/family names separately and use native tab order for roster entry. | Accepted | Supports reliable sorting and efficient keyboard entry without custom focus machinery. |
 | 2026-11-12 | Design CSV import as a later strict-template, validate-preview-commit adapter. | Accepted | Keeps initial scope manual while avoiding a future domain-model rewrite. |
 | 2026-11-12 | Use Vitest with Node and jsdom projects, Testing Library, user-event, and V8 coverage. | Accepted | Aligns with Vite while keeping domain tests fast and UI tests user-centered. |
+| 2026-11-12 | Use `burrata/wwww-prototype`, `main`, and `/wwww-prototype/` as the Pages repository/base. | Accepted | Confirmed by the configured Git remote; the workflow builds explicitly for the project subpath. |
+| 2026-11-12 | Use TypeScript 6 and jsdom 29 with the current Node 24.14 runtime. | Accepted | Keeps the lint/test peer dependency tree compatible and audit-clean without requiring a machine update. |
 
 ## Reference links
 

@@ -22,12 +22,14 @@ explicitly changes that constraint.
 
 ## Repository map
 
-The repository is currently in planning. Expected implementation locations are:
+The repository is in active implementation. Current and planned locations are:
 
+- `src/app/`: application shell and app-level views
+- `src/styles/`: global design tokens and shared styles
+- `src/test/`: shared test setup, render helpers, and future fixtures
 - `src/domain/`: framework-independent types, invariants, and pairing rules
 - `src/storage/`: local persistence, schema migration, import/export, and reset
 - `src/features/`: feature-oriented React UI
-- `src/test/`: shared test fixtures and test utilities
 - `plan/`: living product and architecture decisions
 - `.github/workflows/`: CI and GitHub Pages deployment
 
@@ -76,6 +78,9 @@ directories solely to match it.
 - Reset and import actions require clear scope, confirmation, and validation.
 - Prefer accessible native controls, keyboard operation, and visible status over
   gesture-only interactions.
+- Do not add sample data, fictional records, marketing copy, promotional
+  language, or decorative placeholder content unless the user explicitly asks
+  for it. Use concise functional labels and honest empty states.
 - Keep dependencies minimal and justify new runtime dependencies in
   `plan/architecture.md`.
 - Use Vitest for automated tests. Run domain logic in a Node environment and
@@ -85,7 +90,7 @@ directories solely to match it.
 
 ## Verification
 
-Commands will be finalized when the app is scaffolded. The intended baseline is:
+The standard verification suite is:
 
 ```sh
 npm run lint
