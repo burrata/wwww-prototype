@@ -83,9 +83,14 @@ provider-independent orchestration and page selection. Use Mantine components
 for accessible controls, layout, feedback, and dialogs; keep custom CSS minimal.
 
 The setup UI is a guided sequence rather than one large form: create/open a
-semester, create its genre board, add advisors and capacities, then add students.
-Back navigation is allowed, but later steps must revalidate when earlier roster
-data changes.
+semester, create its genre board, add advisors and capacities, add students,
+then review both rosters. Board hash subroutes (`advisors`, `students`, `review`,
+and `pairing`) make refresh and back/forward navigation predictable without
+persisting transient setup-step state. A board URL without a step infers the
+first incomplete setup screen. Back navigation is allowed, and Review always
+recalculates its gate from current data: at least one student must exist and
+total advisor capacity must exactly equal the student count before Pairing can
+open. Direct navigation to Pairing is guarded by the same derived rule.
 
 Roster forms use native controls in DOM order so Tab moves predictably through
 each row. Successful add resets the fields and focuses the next row's given-name
@@ -511,6 +516,7 @@ task status and acceptance details.
 | 2026-11-12 | Use a hand-written schema-version-1 document validator. | Accepted | The current schema is small enough to validate without adding a runtime dependency; tests cover malformed fields and broken references. |
 | 2026-11-12 | Use hash-based navigation without a routing dependency. | Accepted | Hash URLs survive GitHub Pages refreshes and cover the prototype's small view hierarchy. |
 | 2026-11-12 | Use Mantine 9 for UI primitives and keep containers/components modular. | Accepted | Mantine supports React 19 and Vite, supplies accessible controls and dialogs, and avoids maintaining a bespoke component layer; entity-focused modules keep behavior independently testable. |
+| 2026-11-12 | Represent board onboarding as guarded hash subroutes rather than persisted step state. | Accepted | Refresh/back navigation remains stable while Review and Pairing eligibility are always derived from the current rosters. |
 
 ## Reference links
 

@@ -18,8 +18,8 @@ function normalizeInput(input: AdvisorInput): Required<AdvisorInput> {
   const givenName = input.givenName.trim()
   const familyName = input.familyName.trim()
   const capacity = input.capacity ?? 3
-  if (!givenName) throw new DomainError('Enter a given name.')
-  if (!familyName) throw new DomainError('Enter a family name.')
+  if (!givenName) throw new DomainError('Enter a first name.')
+  if (!familyName) throw new DomainError('Enter a last name.')
   if (!Number.isInteger(capacity) || capacity < 1) {
     throw new DomainError('Capacity must be a whole number of at least 1.')
   }
@@ -70,10 +70,30 @@ export function deleteAdvisor(document: AppDocument, advisorId: AdvisorId): AppD
   const board = document.boards[advisor.boardId]
   if (!board) throw new DomainError('Board not found.')
   const advisors = { ...document.advisors }
+  const students = { ...document.students }
+  const relationships = { ...document.previousAdvisingRelationships }
   delete advisors[advisorId]
+  for (const studentId of board.studentIds) {
+    const student = students[studentId]
+    if (student?.studentRequestedAdvisorIds.includes(advisorId)) {
+      students[studentId] = {
+        ...student,
+        studentRequestedAdvisorIds: student.studentRequestedAdvisorIds.filter((id) => id !== advisorId),
+      }
+    }
+  }
+  for (const [id, relationship] of Object.entries(relationships)) {
+    if (relationship.matchedCurrentAdvisorId === advisorId) {
+      const unlinked = { ...relationship }
+      delete unlinked.matchedCurrentAdvisorId
+      relationships[id] = unlinked
+    }
+  }
   return {
     ...document,
     advisors,
+    students,
+    previousAdvisingRelationships: relationships,
     boards: {
       ...document.boards,
       [board.id]: { ...board, advisorIds: board.advisorIds.filter((id) => id !== advisorId) },

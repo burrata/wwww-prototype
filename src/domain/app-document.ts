@@ -1,14 +1,19 @@
 import type { Board, BoardId } from './board'
 import type { Advisor, AdvisorId } from './advisor'
 import type { Semester, SemesterId } from './semester'
+import type { Student, StudentId } from './student'
+import type {
+  PreviousAdvisingRelationship,
+  PreviousAdvisingRelationshipId,
+} from './previous-advising-relationship'
 
 export type AppDocument = {
   schemaVersion: 1
   semesters: Record<SemesterId, Semester>
   boards: Record<BoardId, Board>
-  students: Record<string, unknown>
+  students: Record<StudentId, Student>
   advisors: Record<AdvisorId, Advisor>
-  previousAdvisingRelationships: Record<string, unknown>
+  previousAdvisingRelationships: Record<PreviousAdvisingRelationshipId, PreviousAdvisingRelationship>
   assignments: Record<string, unknown>
   pairingSessions: Record<string, unknown>
 }

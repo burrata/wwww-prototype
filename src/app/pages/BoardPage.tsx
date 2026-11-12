@@ -1,37 +1,142 @@
-import { Anchor, Stack, Text, Title } from '@mantine/core'
+import { Alert, Anchor, Button, Group, Stack, Text, Title } from '@mantine/core'
 import type { AppDocument } from '../../domain/app-document'
 import { createAdvisor, deleteAdvisor, updateAdvisor, type AdvisorInput } from '../../domain/commands/advisor-commands'
-import { listAdvisorsForBoard } from '../../domain/selectors/advisor-selectors'
+import { listAdvisorsForBoard, totalAdvisorCapacity } from '../../domain/selectors/advisor-selectors'
+import { createStudent, deleteStudent, updateStudent, type StudentInput } from '../../domain/commands/student-commands'
+import { listPreviousStudentsForAdvisor, listStudentsForBoard } from '../../domain/selectors/student-selectors'
 import { genreLabel, termLabel } from '../../domain/taxonomy'
 import { AdvisorList } from '../components/AdvisorList'
 import { CreateAdvisorForm } from '../components/CreateAdvisorForm'
+import { CreateStudentForm } from '../components/CreateStudentForm'
+import { StudentList } from '../components/StudentList'
+import { BoardFeasibility } from '../components/BoardFeasibility'
+import { BoardSetupProgress } from '../components/BoardSetupProgress'
+import { AdvisorOverview } from '../components/AdvisorOverview'
+import { navigate, type BoardStep } from '../routing'
 import { NotFoundPage } from './NotFoundPage'
 
 type Commit = (change: (current: AppDocument) => AppDocument) => boolean
 
-export function BoardPage({ document, boardId, commit }: { document: AppDocument; boardId: string; commit: Commit }) {
+type BoardPageProps = {
+  document: AppDocument
+  boardId: string
+  step?: BoardStep
+  commit: Commit
+}
+
+export function BoardPage({ document, boardId, step: requestedStep, commit }: BoardPageProps) {
   const board = document.boards[boardId]
   if (!board) return <NotFoundPage />
   const semester = document.semesters[board.semesterId]
   if (!semester) return <NotFoundPage />
   const advisors = listAdvisorsForBoard(document, boardId)
+  const students = listStudentsForBoard(document, boardId)
+  const previousStudentsByAdvisorId = Object.fromEntries(
+    advisors.map((advisor) => [advisor.id, listPreviousStudentsForAdvisor(document, advisor.id)]),
+  )
+  const inferredStep: BoardStep = advisors.length === 0
+    ? 'advisors'
+    : students.length === 0 ? 'students' : 'review'
+  const step = requestedStep ?? inferredStep
+  const capacityMatches = students.length > 0 && totalAdvisorCapacity(advisors) === students.length
 
   function addAdvisor(value: AdvisorInput): boolean {
     return commit((current) => createAdvisor(current, {
       id: crypto.randomUUID(), boardId, ...value,
     }))
   }
+  function addStudent(value: StudentInput): boolean {
+    return commit((current) => createStudent(current, {
+      id: crypto.randomUUID(), boardId, ...value,
+    }))
+  }
+  const advisorList = (
+    <AdvisorList
+      advisors={advisors}
+      previousStudentsByAdvisorId={previousStudentsByAdvisorId}
+      onEdit={(id, value) => commit((current) => updateAdvisor(current, id, value))}
+      onDelete={(id) => commit((current) => deleteAdvisor(current, id))}
+    />
+  )
+  const studentList = (
+    <StudentList
+      document={document}
+      students={students}
+      advisors={advisors}
+      onEdit={(id, value) => commit((current) => updateStudent(current, id, value))}
+      onDelete={(id) => commit((current) => deleteStudent(current, id))}
+    />
+  )
+
   return (
-    <Stack gap="md">
+    <Stack gap="lg">
       <Anchor href={`#/semesters/${semester.id}`}>← {termLabel(semester.term)} {semester.year}</Anchor>
-      <Title order={1}>{board.name}</Title>
-      <Text>{genreLabel(board.genre)}</Text>
-      <CreateAdvisorForm onSubmit={addAdvisor} />
-      <AdvisorList
-        advisors={advisors}
-        onEdit={(id, value) => commit((current) => updateAdvisor(current, id, value))}
-        onDelete={(id) => commit((current) => deleteAdvisor(current, id))}
-      />
+      <div>
+        <Title order={1}>{board.name}</Title>
+        <Text>{genreLabel(board.genre)}</Text>
+      </div>
+      <BoardSetupProgress step={step} />
+
+      {step === 'advisors' && (
+        <Stack gap="lg">
+          <Title order={2}>Add advisors</Title>
+          <CreateAdvisorForm onSubmit={addAdvisor} />
+          {advisorList}
+          <Group justify="flex-end">
+            <Button onClick={() => navigate(`/boards/${board.id}/students`)} disabled={advisors.length === 0}>
+              Next: Students
+            </Button>
+          </Group>
+        </Stack>
+      )}
+
+      {step === 'students' && (
+        <Stack gap="lg">
+          <Title order={2}>Add students</Title>
+          <AdvisorOverview advisors={advisors} />
+          <CreateStudentForm advisors={advisors} onSubmit={addStudent} />
+          {studentList}
+          <Group justify="space-between">
+            <Button component="a" href={`#/boards/${board.id}/advisors`} variant="default">Back</Button>
+            <Button onClick={() => navigate(`/boards/${board.id}/review`)} disabled={students.length === 0}>
+              Review
+            </Button>
+          </Group>
+        </Stack>
+      )}
+
+      {step === 'review' && (
+        <Stack gap="lg">
+          <Title order={2}>Review board</Title>
+          <BoardFeasibility advisors={advisors} students={students} />
+          {advisorList}
+          {studentList}
+          <Group justify="space-between">
+            <Group>
+              <Button component="a" href={`#/boards/${board.id}/advisors`} variant="default">Edit advisors</Button>
+              <Button component="a" href={`#/boards/${board.id}/students`} variant="default">Edit students</Button>
+            </Group>
+            <Button onClick={() => navigate(`/boards/${board.id}/pairing`)} disabled={!capacityMatches}>
+              Proceed to pairing
+            </Button>
+          </Group>
+        </Stack>
+      )}
+
+      {step === 'pairing' && (capacityMatches ? (
+        <Stack gap="md">
+          <Title order={2}>Pairing</Title>
+          <Text>Roster ready. Pairing tools are not yet available.</Text>
+          <Group><Button component="a" href={`#/boards/${board.id}/review`} variant="default">Back to review</Button></Group>
+        </Stack>
+      ) : (
+        <Stack gap="md">
+          <Alert color="red" title="Setup incomplete">
+            Advisor capacity must match the student count.
+          </Alert>
+          <Group><Button component="a" href={`#/boards/${board.id}/review`}>Review board</Button></Group>
+        </Stack>
+      ))}
     </Stack>
   )
 }

@@ -6,6 +6,7 @@ import { GENRES, termLabel } from '../../domain/taxonomy'
 import { BoardList } from '../components/BoardList'
 import { CreateBoardForm, type BoardFormValue } from '../components/CreateBoardForm'
 import { NotFoundPage } from './NotFoundPage'
+import { navigate } from '../routing'
 
 type Commit = (change: (current: AppDocument) => AppDocument) => boolean
 
@@ -17,9 +18,10 @@ export function SemesterPage({ document, semesterId, commit }: { document: AppDo
   const availableGenres = GENRES.filter((genre) => !usedGenres.has(genre))
 
   function create(value: BoardFormValue): boolean {
-    return commit((current) => createBoard(current, {
-      id: crypto.randomUUID(), semesterId, ...value,
-    }))
+    const id = crypto.randomUUID()
+    const succeeded = commit((current) => createBoard(current, { id, semesterId, ...value }))
+    if (succeeded) navigate(`/boards/${id}/advisors`)
+    return succeeded
   }
 
   return (

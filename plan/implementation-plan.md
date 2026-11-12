@@ -101,7 +101,8 @@ Depends on: Milestone 0
 
 ## Milestone 2 — enter advisors and capacities
 
-Status: In progress — implementation and automated acceptance complete; awaiting manual checkpoint
+Status: Done
+Completed: 2026-11-12
 Size: M  
 Depends on: Milestone 1
 
@@ -109,8 +110,8 @@ Depends on: Milestone 1
 
 - **M2.1** Add the Advisor entity and pure add/edit/remove commands. Enforce
   single-board membership and integer capacity of at least 1, defaulting to 3.
-- **M2.2** Build keyboard-first advisor entry with separate given/family names,
-  capacity, native tab order, validation, and focus return after add.
+- **M2.2** Build keyboard-first advisor entry with separate first/last name
+  inputs, capacity, native tab order, validation, and focus return after add.
 - **M2.3** Build the advisor roster with safe edit/remove behavior and capacity
   totals.
 - **M2.4** Persist and restore the advisor roster through the existing adapter.
@@ -132,7 +133,7 @@ Depends on: Milestone 1
 
 ## Milestone 3 — enter students, preferences, and history
 
-Status: Not started  
+Status: In progress — implementation and automated acceptance complete; awaiting manual checkpoint
 Size: L  
 Depends on: Milestone 2
 
@@ -148,8 +149,13 @@ Depends on: Milestone 2
   make linked previous advisors ineligible for that student.
 - **M3.5** Build keyboard-first student entry, roster edit/remove, and visible
   stage/preferences/history.
-- **M3.6** Show total capacity versus student count and block no setup action, but
-  clearly warn when pairing cannot be completed.
+- **M3.6** Show total capacity versus student count without blocking roster
+  edits, but prevent pairing while the counts differ.
+- **M3.7** Guide each board through separate Advisors, Students, and Review
+  routes. Allow roster editing from Review and gate Pairing until total advisor
+  capacity exactly equals the nonzero student count.
+- **M3.8** Keep advisor count and total capacity visible above student entry and
+  use concise, consistent labels and setup messages.
 
 ### Automated acceptance
 
@@ -157,16 +163,25 @@ Depends on: Milestone 2
 - Linked previous advisors are ineligible; unmatched history creates no advisor.
 - Name matching handles case/whitespace and never guesses between duplicates.
 - UI tests cover full keyboard entry and relationship states.
+- UI tests cover isolated advisor/student steps, Review editing, exact-capacity
+  gating, and the transition to Pairing.
 
 ### Manual checkpoint
 
 1. Add students in all program stages using only the keyboard.
-2. Add soft requested advisors and confirm they are visibly labeled as guidance.
-3. Add a previous advisor who is on the board and confirm the link/exclusion.
-4. Add a previous advisor who is absent and confirm only removable text is kept.
+2. Add requested advisors and confirm active advisors use an outlined indicator
+   with a background and an info icon.
+3. Add a previous advisor who is on the board and confirm the same active style;
+   hover the info icon and confirm it says “Excluded from pairing.”
+4. Enter previous advisors on separate lines and separated by commas. Confirm an
+   absent advisor uses an outline-only indicator whose hover text says “Not active.”
 5. Create duplicate advisor names and confirm the app asks which one is meant.
-6. Add more students than total slots, refresh, and confirm the feasibility
-   warning and roster persist.
+6. Confirm new boards move through Advisors → Students → Review with only the
+   relevant entry form on each setup screen.
+7. Test both too little and too much advisor capacity. Confirm Review shows an
+   error and disables Pairing until total slots exactly equal student count.
+8. Edit either roster from Review, refresh, and confirm the roster and current
+   route persist.
 
 ## Milestone 4 — run the first pairing pass
 

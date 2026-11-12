@@ -56,11 +56,18 @@ export function deleteSemester(document: AppDocument, semesterId: SemesterId): A
   const semesters = { ...document.semesters }
   const boards = { ...document.boards }
   const advisors = { ...document.advisors }
+  const students = { ...document.students }
+  const relationships = { ...document.previousAdvisingRelationships }
   delete semesters[semesterId]
   for (const boardId of semester.boardIds) {
     const board = boards[boardId]
     if (board) for (const advisorId of board.advisorIds) delete advisors[advisorId]
+    if (board) for (const studentId of board.studentIds) {
+      const student = students[studentId]
+      if (student) for (const relationshipId of student.previousAdvisingRelationshipIds) delete relationships[relationshipId]
+      delete students[studentId]
+    }
     delete boards[boardId]
   }
-  return { ...document, semesters, boards, advisors }
+  return { ...document, semesters, boards, advisors, students, previousAdvisingRelationships: relationships }
 }

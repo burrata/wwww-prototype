@@ -25,7 +25,7 @@ export function App({ storage = createLocalDocumentStorage(window.localStorage) 
   if (route.page === 'semester') {
     page = <SemesterPage document={store.document} semesterId={route.semesterId} commit={store.commit} />
   } else if (route.page === 'board') {
-    page = <BoardPage document={store.document} boardId={route.boardId} commit={store.commit} />
+    page = <BoardPage document={store.document} boardId={route.boardId} step={route.step} commit={store.commit} />
   } else {
     page = <SemesterListPage document={store.document} commit={store.commit} />
   }

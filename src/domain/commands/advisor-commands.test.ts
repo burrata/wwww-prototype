@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { documentWithAdvisor, documentWithBoard } from '../../test/fixtures'
+import { documentWithAdvisor, documentWithBoard, documentWithStudent } from '../../test/fixtures'
 import { createAdvisor, deleteAdvisor, updateAdvisor } from './advisor-commands'
 
 describe('advisor commands', () => {
@@ -34,10 +34,10 @@ describe('advisor commands', () => {
     })).toThrow('ID is already')
     expect(() => createAdvisor(documentWithBoard(), {
       id: 'a2', boardId: 'board-1', givenName: ' ', familyName: 'B',
-    })).toThrow('given name')
+    })).toThrow('first name')
     expect(() => createAdvisor(documentWithBoard(), {
       id: 'a2', boardId: 'board-1', givenName: 'A', familyName: ' ',
-    })).toThrow('family name')
+    })).toThrow('last name')
   })
 
   it('keeps duplicate names as separate identities', () => {
@@ -59,6 +59,13 @@ describe('advisor commands', () => {
     expect(original.advisors['advisor-1']).toMatchObject({ familyName: 'Lee', capacity: 3 })
     expect(deleted.advisors).toEqual({})
     expect(deleted.boards['board-1']?.advisorIds).toEqual([])
+  })
+
+  it('removes advisor requests and unlinks history when deleting an advisor', () => {
+    const deleted = deleteAdvisor(documentWithStudent(), 'advisor-1')
+    expect(deleted.students['student-1']?.studentRequestedAdvisorIds).toEqual([])
+    expect(deleted.previousAdvisingRelationships['relationship-1']).not.toHaveProperty('matchedCurrentAdvisorId')
+    expect(deleted.previousAdvisingRelationships['relationship-1']?.previousAdvisorName).toBe('Morgan Lee')
   })
 
   it('rejects updates and removals for missing advisors', () => {

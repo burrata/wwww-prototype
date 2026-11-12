@@ -25,14 +25,13 @@ describe('semester and board setup', () => {
     await user.selectOptions(screen.getByLabelText('Genre'), 'fiction')
     await user.click(screen.getByRole('button', { name: 'Create board' }))
 
-    expect(screen.getByRole('link', { name: 'First Fiction' })).toBeInTheDocument()
-    expect(screen.getByText('Fiction')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 2, name: 'Add advisors' })).toBeInTheDocument()
+    expect(window.location.hash).toMatch(/^#\/boards\/.+\/advisors$/)
     expect(window.localStorage.getItem(STORAGE_KEY)).toContain('First Fiction')
 
-    await user.click(screen.getByRole('link', { name: 'First Fiction' }))
-    expect(await screen.findByRole('heading', { level: 1, name: 'First Fiction' })).toBeInTheDocument()
     await user.click(screen.getByRole('link', { name: /Spring 2027/ }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Spring 2027' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'First Fiction' })).toBeInTheDocument()
   })
 
   it('loads saved data after remounting', async () => {
@@ -59,6 +58,7 @@ describe('semester and board setup', () => {
     await user.type(screen.getByRole('textbox', { name: /Board name/ }), 'Poetry Group')
     await user.selectOptions(screen.getByLabelText('Genre'), 'poetry')
     await user.click(screen.getByRole('button', { name: 'Create board' }))
+    await user.click(await screen.findByRole('link', { name: /Spring 2029/ }))
     await user.click(screen.getByRole('button', { name: 'Delete board Poetry Group' }))
 
     expect(await screen.findByRole('dialog', { name: 'Delete board “Poetry Group”?' })).toBeInTheDocument()

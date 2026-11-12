@@ -56,12 +56,23 @@ export function deleteBoard(document: AppDocument, boardId: BoardId): AppDocumen
   if (!semester) throw new DomainError('Semester not found.')
   const boards = { ...document.boards }
   const advisors = { ...document.advisors }
+  const students = { ...document.students }
+  const relationships = { ...document.previousAdvisingRelationships }
   delete boards[boardId]
   for (const advisorId of board.advisorIds) delete advisors[advisorId]
+  for (const studentId of board.studentIds) {
+    const student = students[studentId]
+    if (student) {
+      for (const relationshipId of student.previousAdvisingRelationshipIds) delete relationships[relationshipId]
+      delete students[studentId]
+    }
+  }
   return {
     ...document,
     boards,
     advisors,
+    students,
+    previousAdvisingRelationships: relationships,
     semesters: {
       ...document.semesters,
       [semester.id]: { ...semester, boardIds: semester.boardIds.filter((id) => id !== boardId) },

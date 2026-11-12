@@ -33,8 +33,8 @@ export function EditAdvisorButton({ advisor, onSave }: { advisor: Advisor; onSav
       <Modal opened={opened} onClose={() => setOpened(false)} title={`Edit ${fullName}`} centered>
         <form onSubmit={submit}>
           <Stack>
-            <TextInput name="givenName" label="Given name" defaultValue={advisor.givenName} required />
-            <TextInput name="familyName" label="Family name" defaultValue={advisor.familyName} required />
+            <TextInput name="givenName" label="First name" defaultValue={advisor.givenName} required />
+            <TextInput name="familyName" label="Last name" defaultValue={advisor.familyName} required />
             <TextInput
               name="capacity"
               label="Capacity"

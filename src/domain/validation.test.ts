@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { AppDocument } from './app-document'
 import { parseAppDocument } from './validation/app-document-validator'
-import { documentWithAdvisor, documentWithBoard, documentWithSemester } from '../test/fixtures'
+import { documentWithAdvisor, documentWithBoard, documentWithSemester, documentWithStudent } from '../test/fixtures'
 
 function changed(change: (document: AppDocument) => void): AppDocument {
   const document = structuredClone(documentWithBoard())
@@ -15,11 +15,18 @@ function changedAdvisor(change: (document: AppDocument) => void): AppDocument {
   return document
 }
 
+function changedStudent(change: (document: AppDocument) => void): AppDocument {
+  const document = structuredClone(documentWithStudent())
+  change(document)
+  return document
+}
+
 describe('application document validation', () => {
   it('accepts valid empty and populated documents', () => {
     expect(parseAppDocument(documentWithSemester())).toEqual(documentWithSemester())
     expect(parseAppDocument(documentWithBoard())).toEqual(documentWithBoard())
     expect(parseAppDocument(documentWithAdvisor())).toEqual(documentWithAdvisor())
+    expect(parseAppDocument(documentWithStudent())).toEqual(documentWithStudent())
   })
 
   it.each([
@@ -46,6 +53,24 @@ describe('application document validation', () => {
     ['missing referenced board', changed((document) => { delete document.boards['board-1'] })],
     ['wrong board owner', changed((document) => { document.boards['board-1']!.semesterId = 'other' })],
     ['orphan board', changed((document) => { document.semesters['semester-1']!.boardIds = [] })],
+  ])('rejects %s', (_name, value) => {
+    expect(parseAppDocument(value)).toBeNull()
+  })
+
+  it.each([
+    ['bad student value', changedStudent((document) => { (document.students as unknown as Record<string, unknown>)['student-1'] = null })],
+    ['mismatched student ID', changedStudent((document) => { document.students['student-1']!.id = 'other' })],
+    ['blank student name', changedStudent((document) => { document.students['student-1']!.givenName = ' ' })],
+    ['bad program stage', changedStudent((document) => { document.students['student-1']!.programStage = 'third' as 'first' })],
+    ['missing requested advisor', changedStudent((document) => { document.students['student-1']!.studentRequestedAdvisorIds = ['missing'] })],
+    ['duplicate request', changedStudent((document) => { document.students['student-1']!.studentRequestedAdvisorIds.push('advisor-1') })],
+    ['orphan student', changedStudent((document) => { document.boards['board-1']!.studentIds = [] })],
+    ['bad relationship value', changedStudent((document) => { (document.previousAdvisingRelationships as unknown as Record<string, unknown>)['relationship-1'] = null })],
+    ['mismatched relationship ID', changedStudent((document) => { document.previousAdvisingRelationships['relationship-1']!.id = 'other' })],
+    ['blank previous advisor name', changedStudent((document) => { document.previousAdvisingRelationships['relationship-1']!.previousAdvisorName = ' ' })],
+    ['missing matched advisor', changedStudent((document) => { document.previousAdvisingRelationships['relationship-1']!.matchedCurrentAdvisorId = 'missing' })],
+    ['missing relationship', changedStudent((document) => { delete document.previousAdvisingRelationships['relationship-1'] })],
+    ['orphan relationship', changedStudent((document) => { document.students['student-1']!.previousAdvisingRelationshipIds = ['relationship-2'] })],
   ])('rejects %s', (_name, value) => {
     expect(parseAppDocument(value)).toBeNull()
   })

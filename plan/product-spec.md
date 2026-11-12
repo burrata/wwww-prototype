@@ -19,7 +19,7 @@ advisor portal and does not synchronize participants' devices.
 
 - **Semester:** an academic term identified by season (`Spring` or `Fall`) and
   year, such as Fall 2027.
-- **Program stage:** a student's stage: `1st`, `2nd`, `Essay`, `Final`, or
+- **Program stage:** a student's stage: `1st semester`, `2nd semester`, `Essay semester`, `Final semester`, or
   `Extra`. This avoids confusing the supplied student field named “semester”
   with the academic term.
 - **Board:** one genre cohort within a semester, associated with exactly one
@@ -58,23 +58,28 @@ assignments. Multi-user participation is not prototype scope.
 
 1. Add up to three boards to a semester: at most one for each supported genre.
 2. Give each board a human-readable name and choose exactly one genre.
-3. Add the board's advisors and set each advisor's capacity. Capacity defaults
-   to 3 and must be at least 1.
-4. After advisors are set up, add students with their program stage, soft advisor
-   preferences, and previous-advisor history. Each student and advisor belongs
-   to exactly one board in that semester.
-5. Edit the roster until pairing begins. Later edits that invalidate requests or
-   assignments require an explicit warning.
-6. Show a feasibility warning when eligible advisor slots are fewer than
-   students. Do not imply that completion is possible when it is not.
+3. Creating a board starts a guided onboarding flow. The first screen adds only
+   advisors and capacities. Capacity defaults to 3 and must be at least 1.
+4. Continue to a student-only entry screen. Add students with their program
+   stage, advisor preferences, and previous-advisor history. Each student and
+   advisor belongs to exactly one board in that semester. Above the student
+   form, show a compact overview with advisor count and total capacity.
+5. Continue to Review, which displays both rosters and allows either roster to
+   be edited.
+6. Review shows an error whenever total advisor capacity does not exactly equal
+   the student count, whether capacity is too low or too high. Pairing cannot
+   begin until the counts match and at least one student exists.
+7. When Review passes, continue to the separate pairing screen. Later edits that
+   invalidate requests or assignments require an explicit warning.
 
 ### Keyboard-first roster entry
 
-- Student and advisor names use separate given-name and family-name fields.
+- Student and advisor forms label the two name fields **First name** and **Last
+  name**. The data model retains separate given-name and family-name fields.
 - Inputs follow a predictable native tab order without focus traps.
-- Advisor entry tabs through given name, family name, and capacity before the
+- Advisor entry tabs through first name, last name, and capacity before the
   add/save action.
-- Student entry tabs through given name, family name, program stage, preferences,
+- Student entry tabs through first name, last name, program stage, preferences,
   previous-advisor history, and the add/save action.
 - After adding a person, return focus to the first field for the next entry while
   preserving the facilitator's place in the roster.
@@ -221,6 +226,7 @@ Prototype baseline:
 ## Previous-advisor history behavior
 
 - Previous advising relationships are entered for a student by advisor name.
+- The entry field accepts one previous advisor per line or comma-separated names.
 - On entry, the app looks for that advisor among the student's current board.
 - If exactly one current advisor matches, link the history record to that advisor
   and make the advisor ineligible for that student.
@@ -234,6 +240,11 @@ Prototype baseline:
   the unlinked history record.
 - An advisor's “previous students” view is derived from linked history records,
   preventing two editable copies of the same relationship.
+- Requested and previous advisors appear as rounded indicators with an info icon.
+  Current-board advisors have an outline and background; advisors not active on
+  the board have an outline only. Hover/focus identifies ineligible history as
+  “Excluded from pairing” and absent history as “Not active,” without adding
+  separate status text to the roster.
 
 ## Open product questions
 
@@ -265,3 +276,6 @@ single-facilitator architecture.
 | 2026-11-12 | Support entry order or alphabetical-by-last-name pairing order. | Accepted | The facilitator can choose per board; entry order is the default. |
 | 2026-11-12 | Store given and family names separately and optimize roster forms for Tab-key entry. | Accepted | Makes last-name ordering reliable and repeated manual entry efficient. |
 | 2026-11-12 | Defer CSV roster import but preserve a clean import boundary. | Accepted | Manual entry remains first scope; a strict-template importer can be added without changing the domain model. |
+| 2026-11-12 | Show requested and previous advisors as info-bearing rounded indicators; accept previous advisors by line or comma. | Accepted | Makes active, inactive, and excluded relationships visible without adding explanatory status text to every roster row. |
+| 2026-11-12 | Use a board onboarding flow of Advisors → Students → Review → Pairing and require exact capacity equality at Review. | Accepted | Keeps roster entry focused and prevents starting a session with either missing or excess advisor slots. |
+| 2026-11-12 | Use “First name” and “Last name” as form labels and summarize advisor count/capacity above student entry. | Accepted | Uses familiar language and keeps the capacity constraint visible while entering students. |

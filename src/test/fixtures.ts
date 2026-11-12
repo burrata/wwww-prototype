@@ -2,6 +2,7 @@ import { createEmptyDocument, type AppDocument } from '../domain/app-document'
 import { createBoard } from '../domain/commands/board-commands'
 import { createSemester } from '../domain/commands/semester-commands'
 import { createAdvisor } from '../domain/commands/advisor-commands'
+import { createStudent } from '../domain/commands/student-commands'
 
 export function documentWithSemester(): AppDocument {
   return createSemester(createEmptyDocument(), {
@@ -27,5 +28,20 @@ export function documentWithAdvisor(): AppDocument {
     givenName: 'Morgan',
     familyName: 'Lee',
     capacity: 3,
+  })
+}
+
+export function documentWithStudent(): AppDocument {
+  return createStudent(documentWithAdvisor(), {
+    id: 'student-1',
+    boardId: 'board-1',
+    givenName: 'Avery',
+    familyName: 'Stone',
+    programStage: 'first',
+    studentRequestedAdvisorIds: ['advisor-1'],
+    previousAdvisors: [
+      { id: 'relationship-1', name: 'Morgan Lee' },
+      { id: 'relationship-2', name: 'Former Advisor' },
+    ],
   })
 }

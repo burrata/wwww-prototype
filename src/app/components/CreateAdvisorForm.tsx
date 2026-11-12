@@ -32,8 +32,8 @@ export function CreateAdvisorForm({ onSubmit }: { onSubmit(value: AdvisorInput):
       <Title order={2} size="h3" id="add-advisor-title" mb="md">Add advisor</Title>
       <form onSubmit={submit}>
         <Group align="flex-start">
-          <TextInput ref={givenNameRef} name="givenName" label="Given name" required />
-          <TextInput name="familyName" label="Family name" required />
+          <TextInput ref={givenNameRef} name="givenName" label="First name" required />
+          <TextInput name="familyName" label="Last name" required />
           <TextInput
             name="capacity"
             label="Capacity"
