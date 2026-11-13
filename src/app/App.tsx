@@ -1,6 +1,7 @@
 import { BoardPage } from './pages/BoardPage'
 import { SemesterListPage } from './pages/SemesterListPage'
 import { SemesterPage } from './pages/SemesterPage'
+import { SemesterResultsPage } from './pages/SemesterResultsPage'
 import { StorageErrorPage } from './pages/StorageErrorPage'
 import { AppFrame } from './components/AppFrame'
 import { useRoute } from './routing'
@@ -24,6 +25,8 @@ export function App({ storage = createLocalDocumentStorage(window.localStorage) 
   let page
   if (route.page === 'semester') {
     page = <SemesterPage document={store.document} semesterId={route.semesterId} commit={store.commit} />
+  } else if (route.page === 'semester-results') {
+    page = <SemesterResultsPage document={store.document} semesterId={route.semesterId} />
   } else if (route.page === 'board') {
     page = <BoardPage document={store.document} boardId={route.boardId} step={route.step} commit={store.commit} />
   } else {

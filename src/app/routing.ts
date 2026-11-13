@@ -3,12 +3,16 @@ import { useSyncExternalStore } from 'react'
 export type Route =
   | { page: 'semesters' }
   | { page: 'semester'; semesterId: string }
+  | { page: 'semester-results'; semesterId: string }
   | { page: 'board'; boardId: string; step?: BoardStep }
 
 export type BoardStep = 'advisors' | 'students' | 'review' | 'pairing'
 
 function routeFromHash(hash: string): Route {
   const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean)
+  if (parts[0] === 'semesters' && parts[1] && parts[2] === 'results') {
+    return { page: 'semester-results', semesterId: parts[1] }
+  }
   if (parts[0] === 'semesters' && parts[1]) return { page: 'semester', semesterId: parts[1] }
   if (parts[0] === 'boards' && parts[1]) {
     const step = parts[2]

@@ -5,6 +5,8 @@ Last updated: 2026-11-12
 
 ## Product intent
 
+The prototype is named **Who Works With Whom?**
+
 Help an academic program run a live, transparent advising-matching session with
 less bookkeeping and fewer capacity errors. One facilitator should be able to
 create a term, prepare one or more genre boards, record advisor interest as each
@@ -53,6 +55,8 @@ assignments. Multi-user participation is not prototype scope.
 2. Open an existing semester or delete it after confirmation.
 3. View each board's student and advisor counts. After matching starts, an
    incomplete board also shows resolved and unresolved student counts.
+4. Display boards as responsive summary cards, with up to three cards per row
+   on large screens.
 
 ### 2. Board setup
 
@@ -139,8 +143,20 @@ browser restarts.
 
 1. When every student is assigned, show a **Complete board** action. The board
    becomes complete and locks assignment changes only after the facilitator
-   selects it; then show the final student–advisor matches.
+   selects it; then show the final student–advisor matches and mark the Matching
+   setup step complete.
 2. Allow sorting/grouping by student, advisor, program stage, or board.
+   Board result lists are titled with semester and genre, such as
+   `Spring 2027 - Fiction`, and allow the facilitator to include or omit the
+   Student, Program stage, and Advisor columns while keeping at least one.
+   Semester-level results include every completed board and omit incomplete
+   boards from both the preview and print/PDF output. The semester screen shows
+   only a compact completion summary and opens results on a dedicated view. A
+   print option can start each completed board on a separate page.
+   Print settings are collapsed by default behind **Show customizations**, which
+   toggles to **Hide customizations** and reveals Sort, Columns, and Preferences
+   sections. Preferences is omitted when the current print scope has no
+   preference controls.
 3. Provide all three facilitator-friendly outputs:
    - a print-optimized page that can be saved as PDF through the browser;
    - a downloadable CSV;
@@ -296,4 +312,5 @@ single-facilitator architecture.
 | 2026-11-12 | Show requested and previous advisors as info-bearing rounded indicators; accept previous advisors by line or comma. | Accepted | Makes active, inactive, and excluded relationships visible without adding explanatory status text to every roster row. |
 | 2026-11-12 | Use a board onboarding flow of Advisors → Students → Review → Matching and require exact capacity equality at Review. | Accepted | Keeps roster entry focused and prevents starting a session with either missing or excess advisor slots. |
 | 2026-11-12 | Use “matching,” “match,” and “matches” in facilitator-facing language. | Accepted | The terminology is clearer and more natural for the academic advising workflow. |
+| 2026-11-12 | Name the app “Who Works With Whom?” | Accepted | The name directly describes the facilitator's task in approachable language. |
 | 2026-11-12 | Use “First name” and “Last name” as form labels and summarize advisor count/capacity above student entry. | Accepted | Uses familiar language and keeps the capacity constraint visible while entering students. |

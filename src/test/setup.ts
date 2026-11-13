@@ -32,6 +32,12 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
   value: vi.fn(),
 })
 
+Object.defineProperty(window, 'print', {
+  writable: true,
+  value: vi.fn(),
+})
+
 afterEach(() => {
   cleanup()
+  vi.clearAllMocks()
 })

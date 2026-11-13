@@ -310,6 +310,21 @@ that student's list only when they had requested the student.
   when supported, with a plain-text fallback.
 - PDF output uses a dedicated print stylesheet and the browser's print/save-PDF
   flow; do not add a PDF-generation dependency for the prototype.
+- Print CSS isolates the completed-board results projection, adds semester and
+  genre context, repeats table headers, avoids splitting rows, and hides all
+  interactive controls. The screen action calls the native browser print dialog.
+- Result-column visibility is ephemeral presentation state. The same selected
+  columns render on screen and in print, with at least one column always kept.
+- A reusable, collapsed print-customization component owns the disclosure UI
+  and groups ephemeral controls into Sort, Columns, and an optional Preferences
+  section.
+- Semester result projections filter to completed boards before rendering or
+  printing; incomplete boards are never included as partial result tables.
+- Semester printing can apply a CSS page break before every completed board
+  after the first; the option is ephemeral and does not alter result data.
+- Semester results use a dedicated hash route. The semester detail view keeps
+  only a compact derived completion summary and link to avoid mixing setup,
+  board navigation, and large result tables on one screen.
 
 ### Deferred CSV roster import
 
@@ -344,13 +359,22 @@ not require server rewrites. Expected views:
 - semester list
 - semester dashboard
 - board setup
-- live pairing
+- live matching
 - conflict resolution
 - results
 - data/settings
 
 If a routing library is introduced, it must support the repository base path and
 static hosting without a 404 fallback.
+
+## Result projections
+
+Build completed-board result rows with a framework-independent selector so the
+on-screen table and later print, CSV, and clipboard outputs share one projection.
+The board view may sort the same rows by student name, advisor name, or program
+stage without changing persisted assignment order. Semester-wide results will
+add board grouping to this projection rather than duplicating match logic in UI
+components.
 
 ## GitHub Pages deployment
 

@@ -8,9 +8,9 @@ const STEP_INDEX: Record<BoardStep, number> = {
   pairing: 3,
 }
 
-export function BoardSetupProgress({ step }: { step: BoardStep }) {
+export function BoardSetupProgress({ step, completed = false }: { step: BoardStep; completed?: boolean }) {
   return (
-    <Stepper active={STEP_INDEX[step]} allowNextStepsSelect={false}>
+    <Stepper active={completed ? 4 : STEP_INDEX[step]} allowNextStepsSelect={false}>
       <Stepper.Step label="Advisors" />
       <Stepper.Step label="Students" />
       <Stepper.Step label="Review" />

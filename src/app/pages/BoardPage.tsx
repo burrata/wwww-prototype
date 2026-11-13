@@ -155,7 +155,7 @@ export function BoardPage({ document, boardId, step: requestedStep, commit }: Bo
       <div>
         <Title order={1}>{genreLabel(board.genre)}</Title>
       </div>
-      <BoardSetupProgress step={step} />
+      <BoardSetupProgress step={step} completed={pairingSession?.status === 'complete'} />
 
       {step === 'advisors' && (
         <Stack gap="lg">

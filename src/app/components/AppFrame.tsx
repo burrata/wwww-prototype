@@ -5,8 +5,8 @@ export function AppFrame({ children, message }: { children: ReactNode; message?:
   return (
     <Container size="md" px="lg">
       <Box component="header" py="lg">
-        <Anchor href="#/" c="dark" fw={700} underline="never" aria-label="Advising Matching home">
-          Advising Matching
+        <Anchor href="#/" c="dark" fw={700} underline="never" aria-label="Who Works With Whom? home">
+          Who Works With Whom?
         </Anchor>
       </Box>
       <Divider />

@@ -16,3 +16,68 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 0.6in;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-results,
+  .print-results * {
+    visibility: visible;
+  }
+
+  .print-results {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    color: #000;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .print-table-container {
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-results table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .print-results thead {
+    display: table-header-group;
+  }
+
+  .print-results tr {
+    break-inside: avoid;
+  }
+
+  .semester-board-results {
+    break-before: auto;
+    margin-top: 0.35in;
+  }
+
+  .semester-board-results h3 {
+    break-after: avoid;
+  }
+
+  .semester-board-results.print-new-page {
+    break-before: page;
+  }
+}

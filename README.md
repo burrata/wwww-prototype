@@ -1,4 +1,4 @@
-# Advising Matching Prototype
+# Who Works With Whom?
 
 A local-first React prototype for facilitating student–advisor matching meetings.
 The product and architecture decisions live in `plan/`.

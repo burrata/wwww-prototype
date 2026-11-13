@@ -267,15 +267,18 @@ Depends on: Milestone 4
 
 ## Milestone 6 — results and local data controls
 
-Status: Not started  
+Status: In progress — completed-board results, sorting, and print/PDF implemented
 Size: L  
 Depends on: Milestone 5
 
 ### Tasks
 
 - **M6.1** Build complete and incomplete result views with sorting/grouping by
-  student, advisor, program stage, and board.
-- **M6.2** Add print CSS and a Chrome print/save-PDF action.
+  student, advisor, program stage, and board. Completed-board results now sort
+  by student, advisor, or program stage; semester-wide board grouping remains.
+- **M6.2** Add print CSS and a Chrome print/save-PDF action. Completed-board
+  results print with semester and genre context while screen controls are hidden.
+  Semester printing groups all completed boards and omits incomplete boards.
 - **M6.3** Add standards-compliant CSV download without internal IDs.
 - **M6.4** Add equivalent TSV/plain-text and HTML-table clipboard output with a
   plain-text fallback.

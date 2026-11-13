@@ -5,6 +5,7 @@ import { listBoardsForSemester } from '../../domain/selectors/board-selectors'
 import { GENRES, termLabel } from '../../domain/taxonomy'
 import { BoardList } from '../components/BoardList'
 import { CreateBoardForm, type BoardFormValue } from '../components/CreateBoardForm'
+import { SemesterResultsSummary } from '../components/SemesterResultsSummary'
 import { NotFoundPage } from './NotFoundPage'
 import { navigate } from '../routing'
 
@@ -31,6 +32,9 @@ export function SemesterPage({ document, semesterId, commit }: { document: AppDo
       {availableGenres.length > 0 && <CreateBoardForm genres={availableGenres} onSubmit={create} />}
       <Title order={2} size="h3">Boards</Title>
       <BoardList document={document} boards={boards} onDelete={(id) => commit((current) => deleteBoard(current, id))} />
+      {boards.length > 0 && (
+        <SemesterResultsSummary document={document} semesterId={semester.id} boards={boards} />
+      )}
     </Stack>
   )
 }

@@ -1,4 +1,4 @@
-import { Anchor, Group, Paper, Stack, Text } from '@mantine/core'
+import { Anchor, Card, Group, SimpleGrid, Text } from '@mantine/core'
 import type { AppDocument } from '../../domain/app-document'
 import type { Board } from '../../domain/board'
 import { listAssignmentsForBoard } from '../../domain/selectors/pairing-selectors'
@@ -21,7 +21,7 @@ export function BoardList({
 }) {
   if (boards.length === 0) return <EmptyState>No boards have been created.</EmptyState>
   return (
-    <Stack gap="sm">
+    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
       {boards.map((board) => {
         const studentCount = board.studentIds.length
         const advisorCount = board.advisorIds.length
@@ -32,8 +32,16 @@ export function BoardList({
           ? `${countLabel(studentCount, 'student')} (${unresolvedCount} unresolved, ${resolvedCount} resolved)`
           : countLabel(studentCount, 'student')
         return (
-          <Paper key={board.id} withBorder radius="md" p="md">
-            <Group justify="space-between" wrap="nowrap">
+          <Card
+            key={board.id}
+            component="article"
+            aria-label={`${genreLabel(board.genre)} board`}
+            withBorder
+            radius="md"
+            p="md"
+            h="100%"
+          >
+            <Group justify="space-between" align="flex-start" wrap="nowrap">
               <div>
                 <Anchor href={`#/boards/${board.id}`} c="dark" fw={700}>{genreLabel(board.genre)}</Anchor>
                 <Text size="sm" c="dimmed">{studentSummary}; {countLabel(advisorCount, 'advisor')}</Text>
@@ -45,9 +53,9 @@ export function BoardList({
                 onConfirm={() => onDelete(board.id)}
               />
             </Group>
-          </Paper>
+          </Card>
         )
       })}
-    </Stack>
+    </SimpleGrid>
   )
 }

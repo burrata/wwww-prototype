@@ -9,6 +9,7 @@ describe('semester board summaries', () => {
   it('shows roster counts and adds resolution progress after matching starts', () => {
     const ready = documentReadyForPairing()
     const view = render(<BoardList document={ready} boards={[ready.boards['board-1']!]} onDelete={() => undefined} />)
+    expect(screen.getByRole('article', { name: 'Fiction board' })).toBeInTheDocument()
     expect(screen.getByText('2 students; 2 advisors')).toBeInTheDocument()
 
     const oneEach = {

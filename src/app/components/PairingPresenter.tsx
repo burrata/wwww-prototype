@@ -15,6 +15,7 @@ import { listAdvisorsForBoard } from '../../domain/selectors/advisor-selectors'
 import { listPreviousAdvisingForStudent, listPreviousStudentsForAdvisor } from '../../domain/selectors/student-selectors'
 import { programStageLabel } from '../../domain/taxonomy'
 import { AdvisorIndicator } from './AdvisorIndicator'
+import { CompletedBoardResults } from './CompletedBoardResults'
 import { ResolutionPanel } from './ResolutionPanel'
 
 type PairingPresenterProps = {
@@ -94,6 +95,9 @@ export function PairingPresenter({
         >
           {assignedCount} matched · {unresolvedCount} unmatched
         </Alert>
+        {session.status === 'complete' && (
+          <CompletedBoardResults document={document} boardId={session.boardId} />
+        )}
         {session.status === 'resolving' && unresolvedCount > 0 && (
           <Group justify="flex-end">
             <Button onClick={() => onRestartPass()}>Start another pass</Button>
@@ -104,8 +108,8 @@ export function PairingPresenter({
             <Button disabled={busy} onClick={() => run(onComplete)}>Complete board</Button>
           </Group>
         )}
-        <Title order={3}>Request history</Title>
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+        {session.status !== 'complete' && <Title order={3}>Request history</Title>}
+        {session.status !== 'complete' && <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
           {displayStudentIds.map((studentId) => {
             const item = document.students[studentId]
             if (!item) return null
@@ -149,7 +153,7 @@ export function PairingPresenter({
               </Card>
             )
           })}
-        </SimpleGrid>
+        </SimpleGrid>}
       </Stack>
     )
   }
